@@ -1,1 +1,10 @@
 /target
+/node_modules
+/wasm/seedsong-js/node_modules
+/wasm/seedsong-js/dist
+*.tgz
+
+# npm lockfiles are local build artifacts for this workspace.
+package-lock.json
+
+/wasm/seedsong-js/pkg

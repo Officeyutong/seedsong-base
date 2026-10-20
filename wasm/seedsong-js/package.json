@@ -1,0 +1,38 @@
+{
+  "name": "seedsong-js",
+  "version": "0.1.0",
+  "description": "DNA music generation with Rust WebAssembly and WebAudio",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "webpack --mode=production && tsc --emitDeclarationOnly -p tsconfig.json",
+    "build-debug": "webpack --mode=development && tsc --emitDeclarationOnly -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "test": "npm run build && npm run typecheck && node --test test/*.test.mjs",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@wasm-tool/wasm-pack-plugin": "1.5.0",
+    "arraybuffer-loader": "^1.0.8",
+    "buffer": "^6.0.3",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

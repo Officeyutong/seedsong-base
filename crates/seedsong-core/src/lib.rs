@@ -41,3 +41,6 @@ mod wasm_tests;
 #[cfg(all(test, target_arch = "wasm32"))]
 #[path = "../tests/suites/web_audio.rs"]
 mod web_audio_tests;
+
+#[cfg(target_arch = "wasm32")]
+mod js;

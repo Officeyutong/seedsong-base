@@ -49,49 +49,45 @@ audio.write_wav(std::path::Path::new("song.wav"))?;
 // Use inside a function returning anyhow::Result<()>.
 ```
 
-## WebAssembly / WebAudio
+## JavaScript library / WebAudio
+
+The TypeScript facade in [wasm/seedsong-js](wasm/seedsong-js/README.md) follows the separate wasm-bindings and public-wrapper structure used by ckb-light-client. It exposes only initialization, random DNA, WAV rendering, and AudioBuffer rendering. Internal Rust backends, manual memory management, and SNG1 encoding are not exported as public JavaScript APIs.
 
 ```bash
 rustup target add wasm32-unknown-unknown
-cargo build -p seedsong-core --target wasm32-unknown-unknown --release
-# The CLI must match the wasm-bindgen version in Cargo.lock, currently 0.2.129
-cargo install wasm-bindgen-cli --version 0.2.129 --locked
-wasm-bindgen target/wasm32-unknown-unknown/release/seedsong_core.wasm \
-  --target web --out-dir target/wasm-web
+cargo install wasm-pack --locked
+npm install
+npm run build:js
+npm run test:js
 ```
 
-Serve the generated JS/WASM over HTTP and start audio from a user click handler:
+The `seedsong-js` package has one source entry, `src/index.ts`. Webpack + WasmPackPlugin compiles Rust, embeds the wasm through arraybuffer-loader, and bundles initialization together with the public API; TypeScript then emits the declarations. Consumers do not need a separate wasm file or Rust build tools. Install the built package from `wasm/seedsong-js` in your application. See the package README for the build pipeline, Node.js, ensembles, errors, and the full API contract. Use `npm run build:js:debug` for development builds. `package-lock.json` is ignored; a fresh checkout uses `npm install`.
 
-```javascript
-import init, { WebAudioBackend, randomDna, encodeDna, renderWav }
-  from './target/wasm-web/seedsong_core.js';
-await init();
-const backend = new WebAudioBackend();
-const dna = randomDna(); // Save this value to reproduce the result.
-let source;
+```typescript
+import { createSeedsong } from 'seedsong-js';
 
-playButton.onclick = async () => {
-  await backend.resume();
-  if (source) { source.stop(); source.disconnect(); }
-  // Synchronous, single-threaded synthesis; cache AudioBuffer for repeated playback.
-  const buffer = backend.renderDna(dna, true, true); // piano, looping
-  source = backend.play(buffer, true);
-};
-stopButton.onclick = () => {
-  if (source) { source.stop(); source.disconnect(); source = undefined; }
-};
-// When finished, stop the source, then await backend.close(); backend.free();
-const events = encodeDna(dna); // Uint8Array containing canonical SNG1 events.
-// Generate a downloadable WAV without AudioContext; this synchronously renders the whole song.
-const wav = renderWav(dna, true, false);
-const blob = new Blob([wav], { type: 'audio/wav' });
+const music = await createSeedsong();
+const dna = music.randomDna();
+const wav = music.renderWav({ dna, timbre: 'piano', sampleRate: 44100 });
+const blob = new Blob([wav.data], { type: 'audio/wav' });
+
+const context = new AudioContext();
+const buffer = music.renderAudioBuffer(context, { dna, timbre: 'piano', loop: true });
+// In a user click handler:
+await context.resume();
+const source = context.createBufferSource();
+source.buffer = buffer;
+source.loop = true;
+source.connect(context.destination);
+source.start();
+// When finished: source.stop(); source.disconnect(); await context.close();
 ```
 
-Rendering a complete song occupies the current JS thread; wasm does not use multiple threads. `renderDna` uses the AudioContext sample rate, while `renderWav` uses 44.1 kHz. Browser WAV export does not invoke ffmpeg. Rust callers can generate ensembles with `Song::generate` and `MusicBackend::render`.
+Options use named JavaScript fields and `"spec" | "piano"` timbres. DNA is a hex string or 32-byte `Uint8Array`; WAV output contains owned audio bytes and metadata. `serde_wasm_bindgen` handles structured Rust/JS conversion, without JSON strings. Rendering occupies the current JS thread and uses no wasm multithreading. The caller owns WebAudio playback and context lifetime. Browser WAV generation does not call ffmpeg.
 
 ### Viewing wasm tests manually in a browser
 
-All 17 browser tests share one library test entry point: DNA/RNG (2), backend interfaces (3), music algorithms (5), wasm exports/WAV (5), and WebAudio (2). Start one server and view all results on one page:
+All browser tests share one library test entry point: DNA/RNG, backend interfaces, music algorithms, wasm/WAV helpers, structured JS options, and WebAudio. Start one server and view all results on one page:
 
 ```bash
 NO_HEADLESS=1 cargo test -p seedsong-core \

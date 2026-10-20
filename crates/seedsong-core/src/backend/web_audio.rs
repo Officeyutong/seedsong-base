@@ -6,10 +6,9 @@ use crate::{
     music::Song,
     synth::{self, Options, Timbre},
 };
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 use web_sys::{AudioBuffer, AudioBufferSourceNode, AudioContext};
 
-#[wasm_bindgen]
 pub struct WebAudioBackend {
     context: AudioContext,
 }
@@ -36,9 +35,12 @@ impl MusicBackend for WebAudioBackend {
 fn js_error(error: impl std::fmt::Display) -> JsValue {
     js_sys::Error::new(&error.to_string()).into()
 }
-#[wasm_bindgen]
 impl WebAudioBackend {
-    #[wasm_bindgen(constructor)]
+    /// Borrow a caller-owned browser context without managing its lifecycle.
+    pub(crate) fn from_context(context: AudioContext) -> Self {
+        Self { context }
+    }
+
     pub fn new() -> Result<WebAudioBackend, JsValue> {
         Ok(Self {
             context: AudioContext::new()?,
@@ -53,7 +55,6 @@ impl WebAudioBackend {
         self.context.close()
     }
     /// Render once, then reuse the buffer for playback. Rendering is synchronous.
-    #[wasm_bindgen(js_name = renderDna)]
     pub fn render_dna(
         &mut self,
         dna: &str,
@@ -86,18 +87,15 @@ impl WebAudioBackend {
         Ok(source)
     }
 }
-/// Return canonical SNG1 events to JavaScript without creating an AudioContext.
-#[wasm_bindgen(js_name = encodeDna)]
+/// Rust convenience helper for canonical SNG1 events; not exported to JavaScript.
 pub fn encode_dna(dna: &str) -> Result<Vec<u8>, JsValue> {
     Ok(Song::generate(Dna::parse(dna).map_err(js_error)?, [None; 4]).encode())
 }
-#[wasm_bindgen(js_name = randomDna)]
 pub fn random_dna() -> String {
     Dna::random().to_string()
 }
 
-/// Render a downloadable WAV without an AudioContext or filesystem.
-#[wasm_bindgen(js_name = renderWav)]
+/// Rust convenience helper for WAV generation without an AudioContext or filesystem.
 pub fn render_wav(dna: &str, piano: bool, looping: bool) -> Result<Vec<u8>, JsValue> {
     let song = Song::generate(Dna::parse(dna).map_err(js_error)?, [None; 4]);
     let options = Options {
