@@ -1,100 +1,51 @@
 # seedsong-js
 
-A small JavaScript/TypeScript library for generating music from 32-byte DNA. It wraps the Rust wasm engine and exposes named options and browser-native audio types. The distributed bundle includes its wasm program and has no runtime npm dependencies. It does not create workers or require shared memory.
+Generate music from 32-byte DNA in JavaScript or TypeScript. The library provides WAV files and WebAudio buffers through a small typed API. Its ESM bundle includes the Rust wasm program and has no runtime npm dependencies.
 
-The package uses one source entry, `src/index.ts`, for wasm initialization and the public API. Following the wasm build approach used by `ckb-light-client`, webpack and `WasmPackPlugin` compile the Rust crate, embed its wasm through `arraybuffer-loader`, and bundle the API. TypeScript emits declarations after webpack finishes. The Rust workspace still contains only the existing core and native crates. Rust handles composition and synthesis. `serde_wasm_bindgen::from_value` decodes camelCase request objects into strict Rust types; `serde_wasm_bindgen::to_value` returns WAV metadata, preserving the audio bytes as a `Uint8Array`. No JSON strings cross the boundary.
+For the Rust CLI, specification, and repository-wide checks, see the [project README](../../README.md).
 
 ## Build and install
 
-From the repository root:
+Building from source requires Rust with edition 2024 support, the wasm target, wasm-pack, Node.js 22+, and npm. From the repository root:
 
 ```bash
 rustup target add wasm32-unknown-unknown
 cargo install wasm-pack --locked
 npm install
 npm run build:js
-npm run test:js
 ```
 
-Build requires Rust, Node.js 22+, npm, and wasm-pack. `npm run build:js` builds `seedsong-js`, running webpack followed by TypeScript declaration generation. The same complete build is available from this package directory with `npm run build`. WasmPackPlugin invokes wasm-pack, which builds Rust and generates matching bindings. There is no custom script manually spawning Cargo and wasm-bindgen. The public package emits a self-contained ESM `dist/index.js` plus TypeScript declarations. No publishing occurs.
+Use `npm run build:js:debug` for a development build. From this package directory, the equivalent commands are `npm run build` and `npm run build-debug`. The repository ignores `package-lock.json`; use `npm install` on a fresh checkout.
 
-Use `npm run build:js:debug` for development builds. `npm run build --workspaces` is equivalent to `npm run build:js`. `package-lock.json` is ignored by this repository; use `npm install`, not `npm ci` on a fresh checkout. To use the built package in another project:
+Install the built package into another application:
 
 ```bash
 npm install /absolute/path/to/seedsong-base/wasm/seedsong-js
 ```
 
-Package layout:
+Consumers need an ESM environment supporting WebAssembly. Rendering an `AudioBuffer` requires a browser `AudioContext`; WAV generation also works in Node.js. The built library initializes its embedded wasm when imported and requires no asset URL, fetch configuration, or manual memory management.
 
-```text
-wasm/seedsong-js/
-  src/index.ts          # Single entry: wasm initialization and public API
-  src/types.ts          # Public JavaScript-facing types
-  src/wasm.d.ts         # Type declaration for imported wasm bytes
-  webpack.config.cjs    # Builds Rust, embeds wasm, and bundles the API
-  tsconfig.json         # Type checking and declaration generation
-  pkg/                  # Generated wasm-bindgen output (ignored)
-  dist/                 # Self-contained public JS library and declarations (ignored)
-```
-
-Only `dist/` and the README are included in the npm package. Neither the generated intermediate files nor a second npm package are required by consumers.
-
-The package exports only its main entry point. Import from `seedsong-js`; generated bindings and wasm memory are not public APIs. All executable code, including the wasm bytes, is bundled into `dist/index.js`. Consumers do not need Rust, wasm-pack, a separate wasm asset, an asset URL, fetch configuration, or a manual initialization call. The same ESM bundle works in browsers and Node.js.
-
-## Render a WAV
+## Quick start: WAV output
 
 ```typescript
 import { createSeedsong } from 'seedsong-js';
 
 const music = await createSeedsong();
-const dna = music.randomDna();
 const wav = music.renderWav({
-  dna,
-  timbre: 'piano',
-  sampleRate: 44100,
-  loop: false,
-  reverb: 0.18,
-});
-
-// wav.data is an owned Uint8Array, not a borrowed view into wasm memory.
-const blob = new Blob([wav.data], { type: 'audio/wav' });
-const url = URL.createObjectURL(blob);
-const audio = new Audio(url);
-// Run play() in a user gesture handler when required by the browser.
-await audio.play();
-// When finished, release the object URL with URL.revokeObjectURL(url).
-```
-
-For a download, assign the object URL to an anchor's `href` and set its `download` attribute. Revoke the URL after it is no longer needed. Save `wav.dna`, the render options, and all participant DNA to reproduce a result.
-
-## Render for WebAudio playback
-
-```typescript
-import { createSeedsong } from 'seedsong-js';
-
-const music = await createSeedsong();
-const context = new AudioContext();
-const buffer = music.renderAudioBuffer(context, {
   dna: music.randomDna(),
   timbre: 'piano',
-  loop: true,
+  sampleRate: 44100,
+  reverb: 0.18,
+  loop: false,
 });
 
-// In a user click handler:
-await context.resume();
-const source = context.createBufferSource();
-source.buffer = buffer;
-source.loop = true;
-source.connect(context.destination);
-source.start();
-
-// Stop playback when appropriate:
-source.stop();
-source.disconnect();
-await context.close();
+const blob = new Blob([wav.data], { type: 'audio/wav' });
+const url = URL.createObjectURL(blob);
 ```
 
-The caller owns the context and playback sources. The library never resumes or closes a context, connects audio nodes, or starts playback. Standard WebAudio methods cover those operations, so the wrapper adds no player class or manual Rust `free()` calls. Cache an `AudioBuffer` for repeated playback. Rendering with `loop: true` wraps tails into the beginning; set the source's `loop` property as well to repeat it.
+Use the URL as an audio element's source or an anchor's `href` with a `download` attribute. Revoke it with `URL.revokeObjectURL(url)` after it is no longer needed. Start browser playback from a user gesture when required.
+
+`wav.data` is an owned `Uint8Array` that remains valid after later renders and wasm memory growth. Save `wav.dna`, the render options, and any participant DNA to reproduce a result.
 
 ## Public API
 
@@ -104,28 +55,15 @@ The only runtime export is:
 createSeedsong(): Promise<Seedsong>
 ```
 
-The embedded wasm is initialized synchronously once when the bundle is imported, using `initSync`. `createSeedsong()` returns the shared library object, so existing `await createSeedsong()` usage remains valid. It takes no configuration and creates no AudioContext. A browser must allow WebAssembly compilation in its Content Security Policy.
+It takes no arguments and returns the shared library object. The wasm module is initialized once, synchronously during import, using `initSync`. Creating the library does not create an AudioContext or start playback.
 
-Node.js needs no wasm file loading code:
-
-```javascript
-import { writeFile } from 'node:fs/promises';
-import { createSeedsong } from 'seedsong-js';
-
-const music = await createSeedsong();
-const wav = music.renderWav({ dna: music.randomDna(), timbre: 'piano' });
-await writeFile('song.wav', wav.data);
-```
-
-The returned `Seedsong` object has only these methods:
-
-| Method | Result | Purpose |
+| Method | Return type | Purpose |
 | --- | --- | --- |
-| `randomDna()` | `string` | Generate 32 cryptographically random bytes as canonical lowercase hex |
-| `renderWav(options)` | `RenderedWav` | Generate a complete stereo PCM16 WAV and metadata |
+| `randomDna()` | `string` | Generate cryptographically random DNA as 64 lowercase hex digits |
+| `renderWav(options)` | `RenderedWav` | Generate a complete stereo PCM16 WAV with metadata |
 | `renderAudioBuffer(context, options)` | `AudioBuffer` | Generate stereo audio for a caller-owned `AudioContext` |
 
-`RenderedWav` contains `data: Uint8Array`, `dna: string`, `sampleRate: number`, `channels: 2`, and `durationSeconds: number`. Duration includes the natural release tail unless `loop` is true. Returned bytes remain valid after subsequent renders and wasm memory growth.
+The package also exports TypeScript types: `Dna`, `Timbre`, `Participants`, `RenderOptions`, `RenderedWav`, and `Seedsong`.
 
 ### Render options
 
@@ -145,28 +83,143 @@ interface RenderOptions {
 }
 ```
 
-| Field | Meaning and default |
-| --- | --- |
-| `dna` | Required conductor DNA: 64 hex digits, optionally prefixed with `0x` and separated by whitespace, underscores, or hyphens; or exactly 32 bytes in a `Uint8Array` |
-| `timbre` | `"spec"` (default) preserves DNA timbres; `"piano"` replaces only the melody sound |
-| `sampleRate` | Integer Hz between 22050 and 96000; defaults to 44100 for WAV and `context.sampleRate` for AudioBuffer |
-| `loop` | Defaults to false; true produces exactly 16 bars and wraps release/reverb tails |
-| `reverb` | Finite number between 0 and 1; defaults to 0.18 |
-| `participants` | Optional ensemble parts; absent parts use the conductor DNA |
+| Field | Meaning | Default |
+| --- | --- | --- |
+| `dna` | Conductor DNA: 64 hex digits or exactly 32 bytes in a `Uint8Array` | Required |
+| `timbre` | `"spec"` uses DNA-selected timbres; `"piano"` replaces the melody sound | `"spec"` |
+| `sampleRate` | Integer Hz between 22050 and 96000 | 44100 for WAV; `context.sampleRate` for AudioBuffer |
+| `loop` | Produce exactly 16 bars, wrapping release and reverb tails to the beginning | `false` |
+| `reverb` | Finite number from 0 to 1 | `0.18` |
+| `participants` | Optional DNA for named ensemble parts | Missing parts use conductor DNA |
 
-In an ensemble, D[16] of each participant must correspond to its part (melody 0, bass 1, pad 2, drums 3, modulo 4). The conductor's own part cannot be replaced. Its key, mode, tempo, form, harmony, and swing determine the ensemble context.
+Hex input accepts an optional `0x` prefix, whitespace, underscores, and hyphens, and is normalized to lowercase without separators. Plain number arrays are not accepted as DNA. Optional fields set to `undefined` are treated as omitted.
 
-Plain number arrays are not accepted as DNA. Ambiguous booleans for timbre, stringified numbers, invalid values, and unknown option/part names are rejected. Optional fields set to `undefined` are treated as omitted. Rendering throws JavaScript `Error` objects; an unsupported WebAssembly environment fails during module import. Both rendering methods are synchronous and occupy the current JS thread while generating the full piece. There are no worker or multithreading requirements. Floating-point audio may differ across platforms even though the canonical note sequence is deterministic.
+### WAV result
+
+```typescript
+interface RenderedWav {
+  readonly data: Uint8Array<ArrayBuffer>;
+  readonly dna: string;
+  readonly sampleRate: number;
+  readonly channels: 2;
+  readonly durationSeconds: number;
+}
+```
+
+`dna` is the normalized conductor DNA. Duration includes the natural release tail unless `loop` is true. The output always contains stereo PCM16 WAV bytes, suitable for a Blob or a file write.
+
+## WebAudio playback
+
+The caller owns the AudioContext, sources, and connections. Rendering returns a buffer without resuming or closing the context or starting playback.
+
+```typescript
+import { createSeedsong } from 'seedsong-js';
+
+const music = await createSeedsong();
+const context = new AudioContext();
+const buffer = music.renderAudioBuffer(context, {
+  dna: music.randomDna(),
+  timbre: 'piano',
+  loop: true,
+});
+let source: AudioBufferSourceNode | undefined;
+
+// Call from a user click handler.
+async function play() {
+  stop();
+  await context.resume();
+  source = context.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  source.connect(context.destination);
+  source.start();
+}
+
+function stop() {
+  if (source) {
+    source.stop();
+    source.disconnect();
+    source = undefined;
+  }
+}
+
+async function dispose() {
+  stop();
+  await context.close();
+}
+```
+
+Cache buffers for repeated playback. For looping, set both render option `loop: true` and the source's `loop` property. Browser autoplay rules apply when resuming the context or starting audible playback.
+
+## Node.js file export
+
+The same bundle runs in Node.js without loading a separate wasm file:
+
+```javascript
+import { writeFile } from 'node:fs/promises';
+import { createSeedsong } from 'seedsong-js';
+
+const music = await createSeedsong();
+const wav = music.renderWav({ dna: music.randomDna(), timbre: 'piano' });
+await writeFile('song.wav', wav.data);
+```
+
+## Ensembles
+
+The conductor controls key, mode, tempo, form, harmony, and swing. Each participant supplies the parameters for its own part. Its role byte must match that part: `D[16] % 4` is melody 0, bass 1, pad/harmony 2, or drums/rhythm 3. The conductor performs its own part and cannot be replaced.
+
+```typescript
+import { createSeedsong } from 'seedsong-js';
+
+const music = await createSeedsong();
+const conductor = new Uint8Array(32); // Melody role.
+const bass = conductor.slice();
+bass[16] = 1;  // Bass role.
+bass[18] = 12; // Select the octave-alternating bass pattern.
+
+const wav = music.renderWav({
+  dna: conductor,
+  participants: { bass },
+  timbre: 'piano',
+});
+```
+
+Missing parts use the conductor's DNA. Record all participant DNA as well as the conductor DNA for reproducibility.
+
+## Errors and execution model
+
+Both render methods are synchronous and occupy the current JS thread for the full render. There are no workers, wasm threads, shared memory, or cross-origin isolation requirements.
+
+Invalid DNA, unknown option names, wrong types, invalid values, and mismatched ensemble roles throw JavaScript `Error` objects. Timbres must be named strings; numbers and booleans must use their actual JS types. An unsupported WebAssembly environment fails during import, and browser deployment policies must allow WebAssembly compilation.
+
+Canonical note events are deterministic. Floating-point rendering may produce different audio bytes across platforms.
+
+## Build pipeline and package contents
+
+```text
+src/index.ts + crates/seedsong-core
+  → webpack + WasmPackPlugin + wasm-pack
+  → Rust wasm and generated bindings in pkg/
+  → arraybuffer-loader embeds bytes; initSync initializes the module
+  → webpack emits dist/index.js
+  → TypeScript emits dist/*.d.ts
+```
+
+`src/index.ts` is the single entry for wasm initialization and the public API. `src/types.ts` defines public types; `src/wasm.d.ts` types the imported binary. Rust converts named request objects with `serde_wasm_bindgen::from_value` and returns metadata with `serde_wasm_bindgen::to_value`, preserving the audio data as a `Uint8Array`.
+
+Webpack builds Rust in release mode for `build` and development mode for `build-debug`. wasm-opt is skipped, so no separate wasm-opt installation is required. The build retains dependency license notices in the output.
+
+Only `dist/`, this README, and npm package metadata are distributed. The bundled JS contains all executable code, including wasm bytes. Generated `pkg/` files and build tools are not required by consumers.
 
 ## Tests
 
-```bash
-# Builds the actual wasm, checks TypeScript contracts, and tests the JS facade in Node.
-npm run test:js
+From the repository root:
 
-# Manually inspect all Rust wasm/browser tests on one browser page.
-NO_HEADLESS=1 cargo test -p seedsong-core \
-  --target wasm32-unknown-unknown --release --lib
+```bash
+# Build Rust/wasm and JS, check TypeScript contracts, and run Node integration tests.
+npm run test:js
 ```
 
-Node tests exercise the real wasm and serde boundary, including returned typed arrays, defaults, byte/hex input equivalence, ensembles, validation errors, restricted exports, and memory ownership. A separate import test disables fetch and verifies that the distributed bundle initializes and generates DNA without external assets. Browser tests additionally cover the actual WebAudio API. Native tests remain `cargo test --workspace`.
+From this package directory, use `npm test`. The tests cover public exports, structured serde requests/results, DNA input formats, ensembles, validation, audio metadata, and returned memory ownership. A standalone test copies only the compiled JS file to an empty directory and disables fetch before importing it.
+
+For manual browser tests of the Rust wasm and WebAudio implementations, follow the [project test instructions](../../README.md#manual-browser-wasm-tests).
