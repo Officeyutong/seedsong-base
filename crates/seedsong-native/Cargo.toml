@@ -1,0 +1,17 @@
+[package]
+name = "seedsong-native"
+version.workspace = true
+edition.workspace = true
+description = "Native Seedsong command-line audio generator"
+
+[[bin]]
+name = "seedsong-base"
+path = "src/main.rs"
+
+[dependencies]
+seedsong-core = { path = "../seedsong-core" }
+anyhow.workspace = true
+rand.workspace = true
+rayon.workspace = true
+serde_json.workspace = true
+clap = { version = "4", features = ["derive"] }
