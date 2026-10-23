@@ -4,6 +4,8 @@ Generate 16 bars of music from a 32-byte DNA. Seedsong implements the determinis
 
 The note event sequence is the reproducibility boundary: the same DNA produces the same SNG1 events. Audio rendering uses floating-point arithmetic and may differ across platforms.
 
+[pattern.md](pattern.md) specifies the DOB/0 musical and cover traits, the DOB/1 SVG cover pattern, and Cluster metadata for the proposed on-chain collection. These patterns are a specification; Cluster deployment and browser cover restoration are not implemented by the current audio library.
+
 ## Project structure
 
 ```text
@@ -20,6 +22,7 @@ wasm/
     dist/                # Bundled JS and type declarations (ignored)
 vectors/music-v1.json    # Local regression vectors
 spec.md                  # Music generation specification
+pattern.md               # DOB/0 traits, DOB/1 cover pattern, and Cluster metadata
 ```
 
 The Cargo workspace defaults to `seedsong-native`, whose executable is named `seedsong-base`. The npm workspace contains one package, `seedsong-js`.

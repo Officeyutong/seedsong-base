@@ -1,6 +1,6 @@
 # Seedsong Music Generation Specification v1 (seedsong-music/1)
 
-This document defines how the 32-byte DNA of a Seedsong record maps deterministically to a piece of music. Every implementation following this document must produce a byte-for-byte identical note event sequence for the same DNA. Cover artwork mapping (DNA bytes 10–15) is defined in the separate cover specification and is outside the scope of this document.
+This document defines how the 32-byte DNA of a Seedsong record maps deterministically to a piece of music. Every implementation following this document must produce a byte-for-byte identical note event sequence for the same DNA. Cover artwork mapping (DNA bytes 10–15) and the DOB/0 and DOB/1 patterns are defined in [pattern.md](pattern.md) and are outside the scope of this document.
 
 ## 0. Conventions
 
@@ -45,7 +45,7 @@ flowchart TB
 | 4 | Lead timbre | `options`, see 10.1 | Yes |
 | 5 | Bass timbre | `options`, see 10.2 | Yes |
 | 6–9 | Melody seed | Random stream `sng/melody` | No |
-| 10–15 | Cover artwork | See the cover specification | Yes |
+| 10–15 | Cover artwork | See [pattern.md](pattern.md) | Yes |
 | 16 | Ensemble role | `options[melody, bass, harmony, rhythm]` | Yes |
 | 17 | Key | `options[C, C#, D, D#, E, F, F#, G, G#, A, A#, B]` | Yes |
 | 18 | Arrangement | Form = `D[18] % 4` (wallet trait Form); bass pattern = `(D[18] / 4) % 4`; pad pattern = `(D[18] / 16) % 4`; drum pattern = `(D[18] / 64) % 4` | Form only |
@@ -402,7 +402,7 @@ Derivation of child DNA is described in proposal 6.1. This specification defines
 | Contour | 3 | Structural |
 | Lead timbre | 4 | Structural |
 | Bass timbre | 5 | Structural |
-| Cover artwork | 10–15 | Structural (see the cover specification for subdivisions) |
+| Cover artwork | 10–15 | Structural (six independent byte groups; see [pattern.md](pattern.md)) |
 | Role | 16 | Structural |
 | Key | 17 | Structural |
 | Arrangement | 18 | Structural |
