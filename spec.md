@@ -1,6 +1,12 @@
-# Seedsong Music Generation Specification v1 (seedsong-music/1)
+# Seedsong Music Generation Specification v2 (seedsong-music/2)
 
 This document defines how the 32-byte DNA of a Seedsong record maps deterministically to a piece of music. Every implementation following this document must produce a byte-for-byte identical note event sequence for the same DNA. Cover artwork mapping (DNA bytes 10–15) and the DOB/0 and DOB/1 patterns are defined in [pattern.md](pattern.md) and are outside the scope of this document.
+
+Version 2 preserves the v1 DNA layout, PRNG streams, rhythms, timbres, harmony,
+and non-melody parts. It adds whole-melody pitch refinement after generating the
+v1 draft. The same DNA can therefore produce different pitches in v1 and v2.
+Always save the algorithm version together with DNA. The unchanged legacy rules
+are archived in [spec-v1.md](spec-v1.md).
 
 ## 0. Conventions
 
@@ -203,7 +209,7 @@ Each bar is represented by 16 characters: `x` for onset, `-` for continuation, a
 
 The melody scale has n notes (7 or 5). An integer degree s represents pitch as `pitch(s) = tonic_mel + 12 × floor(s / n) + scale[s mod n]`. Here floor and mod use their mathematical definitions for negative values. Degree s = 0 is the melody tonic.
 
-### 5.5 Note-by-note generation rules
+### 5.5 Draft note-by-note generation rules
 
 Generate phrases in form order, processing onsets sequentially. Let `prev` be the previous note's degree and `last_iv` the previous interval. Before the first note of the piece, `prev = 0`. During phrases B and C, raise the center: `center_eff = center + 3`.
 
@@ -216,7 +222,7 @@ Generate phrases in form order, processing onsets sequentially. Let `prev` be th
 3. **Range**: If the result is out of range, reverse the direction while retaining the interval magnitude. If still out of range, choose the closest in-range scale note.
 4. **Phrase ending**: Always snap the last onset of a phrase to a chord tone using the strong-beat rule. Force the last onset of the entire piece to the tonic closest to `prev`, choosing from the in-range values of `tonic_mel` and `tonic_mel + 12`.
 
-### 5.6 Repetition and variation
+### 5.6 Draft repetition and variation
 
 - On the first occurrence of a letter, generate all 4 bars with `sng/melody` according to the rules above.
 - When that letter appears again, copy the first occurrence's first 3 bars note for note. Regenerate bar 4 using `sng/vary` and the same rules, starting with `prev` set to the last note of bar 3.
@@ -225,6 +231,49 @@ Generate phrases in form order, processing onsets sequentially. Let `prev` be th
 ### 5.7 Velocity
 
 Base velocity depends on the step: step 0 = 100; step 8 = 92; steps 4 and 12 = 84; other even steps = 76; odd steps = 68. Add `below(9) − 4` from `sng/human` to every note, then clamp to 1–127.
+
+### 5.8 Whole-melody pitch refinement (v2)
+
+After Sections 5.1–5.7 generate the complete v1 melody draft, refine all melody
+pitches in one integer-only dynamic-programming pass. This pass consumes no
+random values. Start steps, durations, velocities, the 16-bar form, all rhythms,
+and the complete bass, pad and drum parts remain unchanged. Draft motifs remain
+the pitch targets; repeated phrases can receive different pitch adjustments at
+transitions, so exact pitch copying applies to the draft rather than the final
+v2 output.
+
+For `N` melody notes, let `budget = floor((N - 1) * 8 / 100)`. Candidate pitches
+are the in-range scale degrees returned by Section 3.1. Strong-beat notes
+(steps 0 and 8) and the last note in a phrase-ending bar must be chord tones.
+The final melody note must be either `tonic_mel` or `tonic_mel + 12`.
+
+Reject paths containing three identical consecutive pitches or more than
+`budget` adjacent intervals of at least four scale degrees. This includes
+phrase boundaries. The note-by-note draft rules are preferences for pitch
+shape; the final output must satisfy these whole-sequence constraints.
+
+Minimize the sum of the following integer costs:
+
+- For every note: `16 * abs(candidate_pitch - draft_pitch)` in semitones.
+- For every transition: `2 * interval * interval`, where `interval` is the signed
+  scale-degree difference.
+- Add 64 when `abs(interval) >= 4`.
+- Add 6 when the candidate repeats the previous pitch.
+- Add 8 when both the actual and draft intervals are nonzero and have opposite
+  signs. The draft interval compares the original draft pitches, not partially
+  refined output.
+
+The DP state is `(large_leaps_used, degree_index, run)`, where degrees are sorted
+ascending and `run` is 1 or 2. Its flat index is
+`(large_leaps_used * degree_count + degree_index) * 2 + (run - 1)`.
+Initialize every allowed first-note candidate with its deviation cost, zero
+leaps, and run 1. For each following note, enumerate candidate degree indices
+ascending, then predecessor state indices ascending. Update a state only for
+strictly lower cost, retaining the first predecessor on ties. Choose the final
+state by `(cost, state_index)` and backtrack. These tie rules are normative.
+All path costs use unsigned 32-bit integers; unreachable states have cost
+`u32::MAX / 4`. Valid v2 DNA must have a feasible path; implementations must not
+silently relax constraints or fall back to a failing draft.
 
 ## 6. Bass
 
@@ -330,7 +379,7 @@ The decoder outputs a binary block. All multibyte integers are little-endian.
 | Offset | Type | Field |
 | --- | --- | --- |
 | 0 | 4 bytes | Magic `SNG1` |
-| 4 | u8 | Version, fixed at 1 |
+| 4 | u8 | Music algorithm version, fixed at 2 |
 | 5 | u8 | bpm |
 | 6 | u8 | Tonic pitch class pc |
 | 7 | u8 | Mode index (0–6, in the row order of the table in 3.2) |
@@ -358,20 +407,20 @@ Sort events in ascending order by (start step, part, pitch). In ensemble mode, h
 
 ## 12. Quality checks
 
-During M1, run the following checks on 1,000 random DNA values and write the results to a report:
+During M1, run the following checks on 1,000 reproducibly generated pseudorandom DNA values and write the results to a report. All metrics apply to final v2 pitches, including transitions across phrase boundaries:
 
 | Metric | Expected |
 | --- | --- |
 | Non-chord tones on strong beats | 0 (guaranteed by the rules; used to verify the implementation) |
 | Melody notes outside the range | 0 |
-| Proportion of adjacent intervals ≥ 4 scale degrees | ≤ 8% |
+| Proportion of adjacent intervals ≥ 4 scale degrees | ≤ 8% in every piece (and therefore in aggregate) |
 | Runs of 3 or more identical consecutive pitches | 0 |
 | Final melody note is the tonic | 100% |
 | Melody note count | 40–160 per piece |
 
 ## 13. Test vectors and example
 
-The repository provides `vectors/music-v1.json`, containing at least 100 DNA values and their output in hexadecimal, as the acceptance baseline for all implementations.
+The repository provides `vectors/music-v2.json`, containing at least 100 DNA values and their output in hexadecimal, as the acceptance baseline for all implementations.
 
 **Parameter decoding example**: The first 20 DNA bytes are `9a 40 1c 07 e8 55 3f a2 71 0c … 02 09 b6 2d`. Omitted bytes do not affect these parameters.
 
@@ -411,4 +460,4 @@ Derivation of child DNA is described in proposal 6.1. This specification defines
 
 ## 15. Versioning rules
 
-Any change that affects the output in Section 11 must increment the version to `seedsong-music/2` and deploy a new decoder Cell. Previously minted records always use the decoder referenced by their Cluster and are not changed by upgrades.
+This document defines `seedsong-music/2`; the SNG1 container magic stays unchanged and header byte 4 is 2. Any subsequent change affecting Section 11 must increment the music version again and use a new decoder Cell. Legacy v1 output remains available through `MusicVersion::V1`, CLI `--music-version 1`, and JS `musicVersion: 1`. Previously minted records always use the decoder referenced by their Cluster and are not changed by upgrades.

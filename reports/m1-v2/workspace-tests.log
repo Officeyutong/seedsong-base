@@ -1,0 +1,47 @@
+   Compiling seedsong-core v0.2.0 (/root/seedsong-base/crates/seedsong-core)
+   Compiling seedsong-native v0.2.0 (/root/seedsong-base/crates/seedsong-native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+     Running unittests src/lib.rs (target/debug/deps/seedsong_core-b36cf4489241b712)
+
+running 2 tests
+test rng::tests::published_xorshift_vector ... ok
+test dna::tests::parse_roundtrip_and_reject_invalid ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/audio.rs (target/debug/deps/audio-f58c2dd0a766a03a)
+
+running 2 tests
+test loop_has_exactly_sixteen_bars_and_keeps_wrapped_tails ... ok
+test finite_normalized_and_independent_of_thread_count ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+     Running tests/core.rs (target/debug/deps/core-299da27879bc8d6f)
+
+running 10 tests
+test backend::wav_encoding_needs_no_filesystem ... ok
+test music::legacy_repeated_phrase_pitch_and_rhythm_are_copied ... ok
+test music::spec_parameter_example_and_harmony ... ok
+test backend::invalid_render_options_are_rejected ... ok
+test backend::generic_backend_receives_decoded_song_and_options ... ok
+test music::ensemble_uses_conductor_context_and_preserves_its_role ... ok
+test music::regression_vectors ... ok
+test music::v2_regression_vectors ... ok
+test music::integer_decoder_invariants_across_modes_and_patterns ... ok
+test music::refined_melodies_meet_quality_targets_without_changing_rhythm ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.44s
+
+     Running unittests src/main.rs (target/debug/deps/seedsong_base-351affc638aea73d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests seedsong_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

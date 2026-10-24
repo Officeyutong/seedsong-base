@@ -63,13 +63,14 @@ It takes no arguments and returns the shared library object. The wasm module is 
 | `renderWav(options)` | `RenderedWav` | Generate a complete stereo PCM16 WAV with metadata |
 | `renderAudioBuffer(context, options)` | `AudioBuffer` | Generate stereo audio for a caller-owned `AudioContext` |
 
-The package also exports TypeScript types: `Dna`, `Timbre`, `Participants`, `RenderOptions`, `RenderedWav`, and `Seedsong`.
+The package also exports TypeScript types: `Dna`, `MusicVersion`, `Timbre`, `Participants`, `RenderOptions`, `RenderedWav`, and `Seedsong`.
 
 ### Render options
 
 ```typescript
 interface RenderOptions {
   dna: string | Uint8Array;
+  musicVersion?: 1 | 2;
   timbre?: 'spec' | 'piano';
   sampleRate?: number;
   loop?: boolean;
@@ -86,6 +87,7 @@ interface RenderOptions {
 | Field | Meaning | Default |
 | --- | --- | --- |
 | `dna` | Conductor DNA: 64 hex digits or exactly 32 bytes in a `Uint8Array` | Required |
+| `musicVersion` | Deterministic note algorithm; 1 reproduces legacy music | `2` |
 | `timbre` | `"spec"` uses DNA-selected timbres; `"piano"` replaces the melody sound | `"spec"` |
 | `sampleRate` | Integer Hz between 22050 and 96000 | 44100 for WAV; `context.sampleRate` for AudioBuffer |
 | `loop` | Produce exactly 16 bars, wrapping release and reverb tails to the beginning | `false` |
@@ -100,13 +102,14 @@ Hex input accepts an optional `0x` prefix, whitespace, underscores, and hyphens,
 interface RenderedWav {
   readonly data: Uint8Array<ArrayBuffer>;
   readonly dna: string;
+  readonly musicVersion: 1 | 2;
   readonly sampleRate: number;
   readonly channels: 2;
   readonly durationSeconds: number;
 }
 ```
 
-`dna` is the normalized conductor DNA. Duration includes the natural release tail unless `loop` is true. The output always contains stereo PCM16 WAV bytes, suitable for a Blob or a file write.
+`dna` is the normalized conductor DNA. Save `musicVersion` with DNA and render settings: v2 changes melody pitches, while explicit `musicVersion: 1` retains the original output. The cover traits and DNA byte layout are unchanged. Duration includes the natural release tail unless `loop` is true. The output always contains stereo PCM16 WAV bytes, suitable for a Blob or a file write.
 
 ## WebAudio playback
 

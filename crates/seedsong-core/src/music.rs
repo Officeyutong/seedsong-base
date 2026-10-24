@@ -1,4 +1,5 @@
 use crate::{dna::Dna, rng::Stream};
+mod refinement;
 #[cfg(not(target_arch = "wasm32"))]
 use rayon::prelude::*;
 
@@ -11,6 +12,33 @@ pub const MODES: [&str; 7] = [
     "Minor Pentatonic",
     "Lydian",
 ];
+
+/// Version of the deterministic note algorithm, stored in SNG1 header byte 4.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[repr(u8)]
+pub enum MusicVersion {
+    V1 = 1,
+    #[default]
+    V2 = 2,
+}
+impl MusicVersion {
+    pub fn specification(self) -> &'static str {
+        match self {
+            Self::V1 => "seedsong-music/1",
+            Self::V2 => "seedsong-music/2",
+        }
+    }
+}
+impl TryFrom<u8> for MusicVersion {
+    type Error = anyhow::Error;
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::V1),
+            2 => Ok(Self::V2),
+            _ => anyhow::bail!("music version must be 1 or 2"),
+        }
+    }
+}
 pub const KEYS: [&str; 12] = [
     "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
 ];
@@ -535,12 +563,21 @@ fn drums(own: &Params, dna: &Dna, melody_count: usize) -> Vec<Event> {
 }
 #[derive(Clone)]
 pub struct Song {
+    pub version: MusicVersion,
     pub params: Params,
     pub events: Vec<Event>,
     pub sources: [Dna; 4],
 }
 impl Song {
     pub fn generate(conductor: Dna, participants: [Option<Dna>; 4]) -> Self {
+        Self::generate_with_version(conductor, participants, MusicVersion::V2)
+    }
+
+    pub fn generate_with_version(
+        conductor: Dna,
+        participants: [Option<Dna>; 4],
+        version: MusicVersion,
+    ) -> Self {
         let p = Params::new(&conductor);
         let chords = harmony(&p, &conductor);
         let mut sources = participants.map(|d| d.unwrap_or(conductor));
@@ -549,7 +586,13 @@ impl Song {
             .map(|part| {
                 let own = Params::new(&sources[part]);
                 match part {
-                    0 => melody(&p, &sources[0], &chords),
+                    0 => {
+                        let mut notes = melody(&p, &sources[0], &chords);
+                        if version == MusicVersion::V2 {
+                            refinement::refine(&p, &chords, &mut notes);
+                        }
+                        notes
+                    }
                     1 => bass(&own, &chords),
                     2 => pad(&own, &chords),
                     _ => {
@@ -562,6 +605,7 @@ impl Song {
         let mut events: Vec<_> = parts.into_iter().flatten().collect();
         events.sort_by_key(|e| (e.start, e.part, e.pitch));
         Self {
+            version,
             params: p,
             events,
             sources,
@@ -571,7 +615,7 @@ impl Song {
         let p = &self.params;
         let mut b = b"SNG1".to_vec();
         b.extend([
-            1,
+            self.version as u8,
             p.bpm,
             p.pc,
             p.mode,

@@ -1,18 +1,18 @@
 use rayon::prelude::*;
 use seedsong_core::{
     dna::Dna,
-    music::{Song, harmony},
+    music::{MusicVersion, Song, harmony},
     rng::Stream,
 };
 use serde_json::{Value, json};
 
-pub fn report(count: usize) -> Value {
+pub fn report(count: usize, version: MusicVersion) -> Value {
     let rows:Vec<Value>=(0..count).into_par_iter().map(|i| {
         let mut rng=Stream::new("sng/quality",&(i as u64).to_le_bytes());
         let mut dna=[0;32];
         for chunk in dna.chunks_mut(8) {chunk.copy_from_slice(&rng.next_u64().to_le_bytes());}
         let dna=Dna(dna);
-        let song=Song::generate(dna,[None;4]);
+        let song=Song::generate_with_version(dna,[None;4],version);
         let p=&song.params;
         let chords=harmony(p,&dna);
         let notes:Vec<_>=song.events.iter().filter(|e|e.part==0).collect();
@@ -39,10 +39,13 @@ pub fn report(count: usize) -> Value {
     let range = sum("out_of_range");
     let triples = sum("triple_repeats");
     let tonic = rows.iter().filter(|r| r["ends_on_tonic"] == true).count();
-    json!({"version":"seedsong-music/1","count":count,"seed":"sng/quality + little-endian u64 index",
+    json!({"version":version.specification(),"count":count,"seed":"sng/quality + little-endian u64 index",
         "summary":{"strong_non_chord":strong,"out_of_range":range,"large_leap_ratio":sum("large_leaps") as f64/sum("intervals") as f64,
         "max_song_large_leap_ratio":max_leap,"triple_repeat_windows":triples,"ends_on_tonic":tonic,"note_count_failures":length_failures,
         "all_targets_pass":strong==0 && range==0 && triples==0 && tonic==count && length_failures==0 && max_leap<=0.08},
-        "notes":"Quality targets are observations, not extra rules: chord snapping and phrase copies can introduce repetitions and large leaps. No official vectors were supplied.",
+        "notes":match version {
+            MusicVersion::V1 => "Quality targets are observations, not extra rules: chord snapping and phrase copies can introduce repetitions and large leaps. No official vectors were supplied.",
+            MusicVersion::V2 => "Final v2 melody events are checked, including phrase boundaries. Whole-melody refinement enforces no triple repeats and a per-song large-leap budget. No independent acceptance vectors were supplied.",
+        },
         "songs":rows})
 }

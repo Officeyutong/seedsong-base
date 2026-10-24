@@ -2,6 +2,8 @@
 export type Dna = string | Uint8Array;
 /** Use DNA-selected timbres, or replace the melody with a synthesized piano. */
 export type Timbre = "spec" | "piano";
+/** Deterministic note algorithm. Version 1 reproduces legacy recordings. */
+export type MusicVersion = 1 | 2;
 /** Named ensemble parts. Each DNA's role byte must match its assigned part. */
 export interface Participants {
   melody?: Dna;
@@ -13,6 +15,8 @@ export interface Participants {
 export interface RenderOptions {
   /** Conductor DNA. Its own part cannot be replaced by a participant. */
   dna: Dna;
+  /** Defaults to 2. Save this version with DNA to reproduce the same music. */
+  musicVersion?: MusicVersion;
   /** Defaults to "spec". */
   timbre?: Timbre;
   /** Integer Hz, 22050–96000. Defaults to 44100 for WAV or context.sampleRate for AudioBuffer. */
@@ -30,6 +34,7 @@ export interface RenderedWav {
   readonly data: Uint8Array<ArrayBuffer>;
   /** Canonical, lowercase 64-digit conductor DNA. Save all participant DNA as well for ensembles. */
   readonly dna: string;
+  readonly musicVersion: MusicVersion;
   readonly sampleRate: number;
   readonly channels: 2;
   /** Includes the release tail unless loop is true. */

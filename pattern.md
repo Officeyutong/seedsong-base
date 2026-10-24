@@ -2,9 +2,9 @@
 
 **Pattern identifier:** `seedsong-pattern/1`
 
-**Music specification:** [`seedsong-music/1`](spec.md)
+**Music specification:** [`seedsong-music/2`](spec.md); legacy [`seedsong-music/1`](spec-v1.md)
 
-This document fixes the DOB/0 traits and DOB/1 cover pattern for Seedsong's 32-byte DNA. It completes the cover byte allocation reserved in the music specification. These are collection design decisions; the JSON patterns below are normative. This document specifies the patterns and their packaging, not a deployed Cluster or an implemented browser cover renderer.
+This document fixes the DOB/0 traits and DOB/1 cover pattern for Seedsong's 32-byte DNA. It completes the cover byte allocation reserved in the music specification. The cover patterns and traits are unchanged by music v2. The music reference must name the version implemented by the selected WASM artifact. These are collection design decisions; the JSON patterns below are normative. This document specifies the patterns and their packaging, not a deployed Cluster or an implemented browser cover renderer.
 
 The [Seedsong proposal](https://talk.nervos.org/t/spark-program-seedsspark-program-seedsong-on-chain-generative-music-with-spore-dob-and-light-client-wasmong-spore-dob-light-client-wasm/10997) calls for standard DOB decoders for wallet-visible traits and layered covers, plus a separate music WASM referenced from the Cluster. A browser retrieves the necessary Cells through light-client-wasm and restores the artwork and music locally. Audio files are generated rather than stored on-chain.
 
@@ -211,7 +211,7 @@ function makeClusterDescription(dob0Pattern, dob1Pattern, musicDecoderHash) {
     seedsong: {
       pattern: 'seedsong-pattern/1',
       music: {
-        spec: 'seedsong-music/1',
+        spec: 'seedsong-music/2',
         decoder: { type: 'code_hash', hash: musicDecoderHash },
       },
     },

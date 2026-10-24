@@ -1,0 +1,131 @@
+{
+  "recorded_at_utc": "2026-10-24T06:16:29Z",
+  "base_revision": "9d03677b1c15b5af8f39e24ce35d8f7c5f4a200e",
+  "evaluated_uncommitted_changes": true,
+  "music_specification": "seedsong-music/2",
+  "environment": {
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "validation": {
+    "native_workspace": {
+      "command": "cargo test --workspace",
+      "exit_code": 0,
+      "passed": 14,
+      "failed": 0,
+      "ignored": 0
+    },
+    "js_package": {
+      "command": "npm run test:js",
+      "exit_code": 0,
+      "reported_test_files": 2,
+      "includes_wasm_build_and_typescript_check": true
+    },
+    "wasm_test_compilation": {
+      "command": "cargo test -p seedsong-core --target wasm32-unknown-unknown --release --lib --no-run",
+      "exit_code": 0,
+      "browser_execution": false
+    },
+    "clippy": {
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "exit_code": 0
+    },
+    "v1_regression_vectors_unchanged": true,
+    "v1_quality_report_byte_identical": true,
+    "v2_quality_threads_1_and_4_byte_identical": true,
+    "manual_listening_performed": false
+  },
+  "quality": {
+    "count": 1000,
+    "same_dna_as_v1": true,
+    "v1_summary": {
+      "all_targets_pass": false,
+      "ends_on_tonic": 1000,
+      "large_leap_ratio": 0.04281418668142873,
+      "max_song_large_leap_ratio": 0.2222222222222222,
+      "note_count_failures": 0,
+      "out_of_range": 0,
+      "strong_non_chord": 0,
+      "triple_repeat_windows": 999
+    },
+    "v2_summary": {
+      "all_targets_pass": true,
+      "ends_on_tonic": 1000,
+      "large_leap_ratio": 0.002201728671539826,
+      "max_song_large_leap_ratio": 0.04081632653061224,
+      "note_count_failures": 0,
+      "out_of_range": 0,
+      "strong_non_chord": 0,
+      "triple_repeat_windows": 0
+    }
+  },
+  "additional_stress_run": {
+    "command": "cargo run --release -- --check 10000 --report /tmp/seedsong-v2-stress-report.json --threads 4",
+    "exit_code": 0,
+    "count": 10000,
+    "summary": {
+      "all_targets_pass": true,
+      "ends_on_tonic": 10000,
+      "large_leap_ratio": 0.0023908266631824,
+      "max_song_large_leap_ratio": 0.058823529411764705,
+      "note_count_failures": 0,
+      "out_of_range": 0,
+      "strong_non_chord": 0,
+      "triple_repeat_windows": 0
+    },
+    "full_report_archived": false,
+    "full_report_sha256": "fbabee594a9adc6c76e3fea0136e2de6c3c066c11501b9136e695941e4689f5a"
+  },
+  "regression_corpus_pitch_comparison": {
+    "dna_count": 100,
+    "melody_note_count": 8197,
+    "changed_pitches": 458,
+    "unchanged_pitch_ratio": 0.9441258997194095,
+    "rhythm_velocity_and_accompaniment_identical": true
+  },
+  "source_sha256": {
+    "Cargo.lock": "6811a8efbfec28907db21705ac24c24d3a0d96cfc99cdd3d3fe6d6420917b858",
+    "Cargo.toml": "44c04193c2598063bfbc0143d52783619315f20b8e011efbcab85b4c149a6351",
+    "crates/seedsong-core/Cargo.toml": "1ee709af44dc56e8524a2273dbb551d7e984bc526fa02255b55b93ad6b74306c",
+    "crates/seedsong-core/examples/regression_vectors.rs": "a7345f51b26d7b04f49bce3e80ba807c50710211bf7f2ebd4d2acbffb68d52d9",
+    "crates/seedsong-core/src/backend/mod.rs": "f9dda1efd0dbea0a03adaa55593f2eb7e645a3997ebee6401aaceb2796870aae",
+    "crates/seedsong-core/src/backend/native.rs": "ce3590dfc38eec9e5b5f33adfd6356f3580aa82d99004221e07e6e1e8167b1ea",
+    "crates/seedsong-core/src/backend/web_audio.rs": "a9ee6b6e506e01a868fce13967281291fc4fa691ec49e7379e2e91782fa49ede",
+    "crates/seedsong-core/src/dna.rs": "482b2d988049f9b6b64bb4a2817df5d8f93376b1abcce9c8408c824954315ac1",
+    "crates/seedsong-core/src/js.rs": "f05443d0cb2002a00ec6d3a337b6766758bd6a582bacabc36b589bd452aa7446",
+    "crates/seedsong-core/src/lib.rs": "efa2d860e01d451a086e4c1a9dc4623f1be12f5c4e2f92f6ed83d6d84a1a3132",
+    "crates/seedsong-core/src/music.rs": "e3b95e4f4dec49ac728fa2cc7e3c0cd8055087eddbbfb76eb43d116db3d0ee90",
+    "crates/seedsong-core/src/music/refinement.rs": "6eddf0b0e40db14f327c3084746578c734fb6af5bef7f86e18ddc01c25001707",
+    "crates/seedsong-core/src/rng.rs": "8d4039b4f722e39ea641dac55f8048cad825e8710c9c8bb9415b84f0d3cb7412",
+    "crates/seedsong-core/src/synth.rs": "cda53dc0970bd7e8f6519d1d285eb850e6b8d3d9c67705483d7c1bbacaa02c31",
+    "crates/seedsong-core/src/wav.rs": "2ede50b1718fe15268ba5aca3a30851e9e820e719dea0df980c8116848cfb77d",
+    "crates/seedsong-core/tests/audio.rs": "2b5141529c410a571141e9441af89eb1c55e7997883789b2c56f8defb7bdf250",
+    "crates/seedsong-core/tests/core.rs": "69d523ffb3e29c9a607b25dbc09523ef38cf7f49a6c0c0eebb4264972c106cb7",
+    "crates/seedsong-core/tests/suites/backend.rs": "4ea92be9d0e5bd100834e078d3a1244d016f8432dd7a26835b0241804145c55a",
+    "crates/seedsong-core/tests/suites/music.rs": "6d26e88941980d3b0c60e563b9d816f5ba0e1678378439ff35c3f9099859a0d5",
+    "crates/seedsong-core/tests/suites/wasm.rs": "916f126abe3fc77ec693300c7fcf64bf8568744edd8c5729e290a4cff336b10f",
+    "crates/seedsong-core/tests/suites/web_audio.rs": "538cfb7a3e40a22cf31bc3d8b07f50583df916fac2d68ced0ef6058e73b98627",
+    "crates/seedsong-core/tests/support/mod.rs": "6c7c00429f6ed54a590edc73432ffe2439a7bb6a102b5bfbfaf55b4eceffdd15",
+    "crates/seedsong-native/Cargo.toml": "d7dfbdedf0e440a276cb33a1e33ee361576198bdb12d4eae1704b08920879d89",
+    "crates/seedsong-native/src/main.rs": "59597f3bb2177955a254475ca2ede6541741a4e2170f487eea7ee856ec7872b4",
+    "crates/seedsong-native/src/quality.rs": "676998cb37887c25793878b007418f4f560afced6e5c70c835b992827a3b9162",
+    "pattern.md": "2af9f7e4781c9914508bd2505011a7a1f458564ccad13b2f7cfecf379472513d",
+    "spec-v1.md": "16cbb234326683727cbab33470fc6052eb73a3c72831e847de1b7609dfa4f5e4",
+    "spec.md": "b9e5edd3ecea6c6be294c1c971ecb75c7092b4d5b5d21825a8607436c1775ab4",
+    "vectors/music-v1.json": "460e0447807072de822e86a7baa1a6ebd0ea898c2798d1c5677f21bc80f644dd",
+    "vectors/music-v2.json": "bebbee831b177a8cfc29c8b9288360a96ebf49180b4c81e3b1c1768ee08006eb",
+    "wasm/seedsong-js/package.json": "70ded4a7ef30b7d4915f62129587b32896d096e642ae8806eda016f80dd71750",
+    "wasm/seedsong-js/src/index.ts": "4f35b030282a37218579154a654491bc955d4c99ab581b4158332b62992ec1e2",
+    "wasm/seedsong-js/src/types.ts": "25f3f8097313201af7771fcb80871ba2d088fbeec1668b25635e421054fae66f",
+    "wasm/seedsong-js/src/wasm.d.ts": "2abc9f23b6d58d0e019fb847d99ef5d3c8853ada2c2a9d28debcba26532c7a03",
+    "wasm/seedsong-js/test/initialization.test.mjs": "114b2aa87acfca4fadc260c11aabc703a80f926917cf4c1539fdc2329ed90f2c",
+    "wasm/seedsong-js/test/library.test.mjs": "aa390f6d85ac26e74f11bde670d5d70d168a83153de713ccec38728ae37206a7",
+    "wasm/seedsong-js/test/types.ts": "f0a91f50cdf09a7590752c7dec8365881e52fb70e90e2cee023e7d0c65ffde31",
+    "wasm/seedsong-js/webpack.config.cjs": "2cbe9e0610fadb542afc9e0e79fdf7adf97eeb2ed69e0dfdbb24a5e5c524fb1a"
+  },
+  "artifacts": {
+    "quality-report.json": "11085377bb4cb5a4035cf311e60ef560a24aaa09e8d060df43ba53b87a908406",
+    "workspace-tests.log": "db98a841ee8867227cf3c9f8b35436e5611e7dcb7c232c01dfb4b9e612c99ad3",
+    "js-tests.log": "221f49fd74525bf1672368c63b1add4c546aee80a222572d6d99fb7066b51412"
+  }
+}

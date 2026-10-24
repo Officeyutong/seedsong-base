@@ -1,6 +1,6 @@
 use seedsong_core::{
     dna::Dna,
-    music::{Params, Song, harmony},
+    music::{MusicVersion, Params, Song, harmony},
     rng::Stream,
 };
 
@@ -30,7 +30,7 @@ fn spec_parameter_example_and_harmony() {
     let song = Song::generate(dna, [None; 4]);
     assert_eq!(
         &song.encode()[..16],
-        &[b'S', b'N', b'G', b'1', 1, 124, 9, 4, 2, 0, 0, 3, 1, 2, 0, 2]
+        &[b'S', b'N', b'G', b'1', 2, 124, 9, 4, 2, 0, 0, 3, 1, 2, 0, 2]
     );
 }
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
@@ -87,9 +87,9 @@ fn integer_decoder_invariants_across_modes_and_patterns() {
 }
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
-fn repeated_phrase_pitch_and_rhythm_are_copied() {
+fn legacy_repeated_phrase_pitch_and_rhythm_are_copied() {
     let dna = Dna([0; 32]);
-    let song = Song::generate(dna, [None; 4]);
+    let song = Song::generate_with_version(dna, [None; 4], MusicVersion::V1);
     let phrase = |start: u16| {
         song.events
             .iter()
@@ -139,8 +139,99 @@ fn regression_vectors() {
     let vectors: serde_json::Value =
         serde_json::from_str(include_str!("../../../../vectors/music-v1.json")).unwrap();
     for v in vectors["vectors"].as_array().unwrap() {
+        let song = Song::generate_with_version(
+            Dna::parse(v["dna"].as_str().unwrap()).unwrap(),
+            [None; 4],
+            MusicVersion::V1,
+        );
+        let hex: String = song.encode().iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, v["sng1_hex"].as_str().unwrap());
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+fn v2_regression_vectors() {
+    let vectors: serde_json::Value =
+        serde_json::from_str(include_str!("../../../../vectors/music-v2.json")).unwrap();
+    for v in vectors["vectors"].as_array().unwrap() {
         let song = Song::generate(Dna::parse(v["dna"].as_str().unwrap()).unwrap(), [None; 4]);
         let hex: String = song.encode().iter().map(|b| format!("{b:02x}")).collect();
         assert_eq!(hex, v["sng1_hex"].as_str().unwrap());
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
+#[cfg_attr(not(target_arch = "wasm32"), test)]
+fn refined_melodies_meet_quality_targets_without_changing_rhythm() {
+    for i in 0..1000u64 {
+        let mut rng = Stream::new("sng/quality", &i.to_le_bytes());
+        let mut bytes = [0; 32];
+        for chunk in bytes.chunks_mut(8) {
+            chunk.copy_from_slice(&rng.next_u64().to_le_bytes());
+        }
+        let dna = Dna(bytes);
+        let legacy = Song::generate_with_version(dna, [None; 4], MusicVersion::V1);
+        let song = Song::generate(dna, [None; 4]);
+        assert_eq!(song.version, MusicVersion::V2);
+        assert_eq!(song.encode()[4], 2);
+        let notes: Vec<_> = song.events.iter().filter(|e| e.part == 0).collect();
+        let old_notes: Vec<_> = legacy.events.iter().filter(|e| e.part == 0).collect();
+        assert_eq!(notes.len(), old_notes.len());
+        assert!((40..=160).contains(&notes.len()));
+        for (note, old) in notes.iter().zip(&old_notes) {
+            assert_eq!(
+                (note.start, note.duration, note.velocity),
+                (old.start, old.duration, old.velocity)
+            );
+        }
+        assert_eq!(
+            song.events
+                .iter()
+                .filter(|e| e.part != 0)
+                .collect::<Vec<_>>(),
+            legacy
+                .events
+                .iter()
+                .filter(|e| e.part != 0)
+                .collect::<Vec<_>>()
+        );
+        let degrees = song.params.degrees();
+        let pitch_degrees: Vec<_> = notes
+            .iter()
+            .map(|e| {
+                *degrees
+                    .iter()
+                    .find(|&&degree| song.params.pitch(degree) == e.pitch as i16)
+                    .unwrap()
+            })
+            .collect();
+        assert!(
+            pitch_degrees
+                .windows(3)
+                .all(|w| w[0] != w[1] || w[1] != w[2]),
+            "triple repeat in {dna}"
+        );
+        let leaps = pitch_degrees
+            .windows(2)
+            .filter(|w| (w[1] - w[0]).abs() >= 4)
+            .count();
+        assert!(
+            leaps * 100 <= (notes.len() - 1) * 8,
+            "excessive leaps in {dna}"
+        );
+        assert_eq!(notes.last().unwrap().pitch % 12, song.params.pc);
+        let chords = harmony(&song.params, &dna);
+        for (index, note) in notes.iter().enumerate() {
+            let last_in_bar =
+                index + 1 == notes.len() || notes[index + 1].start / 16 != note.start / 16;
+            if [0, 8].contains(&(note.start % 16)) || (note.start / 16 % 4 == 3 && last_in_bar) {
+                assert!(
+                    chords[note.start as usize / 16]
+                        .pcs
+                        .contains(&(note.pitch as i16 % 12))
+                );
+            }
+        }
     }
 }

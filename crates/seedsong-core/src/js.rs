@@ -2,7 +2,7 @@
 use crate::{
     backend::{MusicBackend, PcmAudio, web_audio::WebAudioBackend},
     dna::Dna,
-    music::{Params, Song},
+    music::{MusicVersion, Params, Song},
     synth::{self, Options, Timbre},
 };
 use serde::{Deserialize, Serialize};
@@ -28,6 +28,8 @@ struct Participants {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct RenderRequest {
     dna: String,
+    #[serde(default = "default_music_version")]
+    music_version: u8,
     #[serde(default)]
     timbre: JsTimbre,
     sample_rate: Option<u32>,
@@ -40,6 +42,9 @@ struct RenderRequest {
 }
 fn default_reverb() -> f64 {
     Options::default().reverb
+}
+fn default_music_version() -> u8 {
+    MusicVersion::default() as u8
 }
 fn error(error: impl std::fmt::Display) -> JsValue {
     js_sys::Error::new(&error.to_string()).into()
@@ -66,6 +71,7 @@ impl RenderRequest {
             &value,
             &[
                 "dna",
+                "musicVersion",
                 "timbre",
                 "sampleRate",
                 "loop",
@@ -114,7 +120,12 @@ impl RenderRequest {
                 participants[part] = Some(participant);
             }
         }
-        Ok((Song::generate(dna, participants), options, dna.to_string()))
+        let version = MusicVersion::try_from(request.music_version).map_err(error)?;
+        Ok((
+            Song::generate_with_version(dna, participants, version),
+            options,
+            dna.to_string(),
+        ))
     }
 }
 #[derive(Serialize)]
@@ -123,6 +134,7 @@ struct WavResult {
     #[serde(with = "serde_wasm_bindgen::preserve")]
     data: js_sys::Uint8Array,
     dna: String,
+    music_version: u8,
     sample_rate: u32,
     channels: u8,
     duration_seconds: f64,
@@ -138,6 +150,7 @@ pub fn render_wav(request: JsValue) -> Result<JsValue, JsValue> {
     let result = WavResult {
         data: js_sys::Uint8Array::from(audio.to_wav().map_err(error)?.as_slice()),
         dna,
+        music_version: song.version as u8,
         sample_rate: audio.rate,
         channels: 2,
         duration_seconds: audio.frames.len() as f64 / audio.rate as f64,
@@ -187,6 +200,9 @@ mod tests {
             r#""loop":"true""#,
             r#""sample_rate":44100"#,
             r#""participants":{"unknown":"00"}"#,
+            r#""musicVersion":0"#,
+            r#""musicVersion":3"#,
+            r#""musicVersion":1.5"#,
         ] {
             let value = js_sys::JSON::parse(&format!(r#"{{"dna":"{}",{field}}}"#, "00".repeat(32)))
                 .unwrap();

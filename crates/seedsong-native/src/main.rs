@@ -7,7 +7,7 @@ use seedsong_core::{
         native::{NativeBackend, export},
     },
     dna::Dna,
-    music::{KEYS, LEADS, MODES, Params, Song},
+    music::{KEYS, LEADS, MODES, MusicVersion, Params, Song},
     synth::Options,
 };
 use std::{
@@ -38,6 +38,9 @@ impl From<Timbre> for seedsong_core::synth::Timbre {
     long_about = "无参数运行可逐步输入。相同 DNA 得到相同 SNG1 音符事件。默认生成立体声 WAV；opus/flac/mp3/m4a 等格式使用 ffmpeg 转换。"
 )]
 struct Args {
+    /// Deterministic music algorithm: 2 (default), or 1 for legacy reproduction.
+    #[arg(long, default_value_t = 2, value_parser = clap::value_parser!(u8).range(1..=2))]
+    music_version: u8,
     /// 64 个十六进制字符的 DNA，可带 0x
     #[arg(long, conflicts_with = "random")]
     dna: Option<String>,
@@ -252,7 +255,12 @@ fn main() -> Result<()> {
     }
     let pool = pool.build()?;
     if let Some(count) = args.check {
-        let report = pool.install(|| quality::report(count as usize));
+        let report = pool.install(|| {
+            quality::report(
+                count as usize,
+                MusicVersion::try_from(args.music_version).unwrap(),
+            )
+        });
         let path = args.report.unwrap_or_else(|| "quality-report.json".into());
         write_new(&path, &serde_json::to_vec_pretty(&report)?)?;
         println!(
@@ -296,7 +304,8 @@ fn main() -> Result<()> {
         );
         participants[i] = Some(participant);
     }
-    let song = pool.install(|| Song::generate(dna, participants));
+    let version = MusicVersion::try_from(args.music_version)?;
+    let song = pool.install(|| Song::generate_with_version(dna, participants, version));
     let p = &song.params;
     println!(
         "DNA: {dna}\n{} {} · {} BPM · {} · {} 个事件",
@@ -381,7 +390,7 @@ fn main() -> Result<()> {
         );
         ensure!(!meta.exists(), "渲染记录已存在：{}", meta.display());
         write_new(&dna_path, format!("{dna}\n").as_bytes())?;
-        let metadata = serde_json::json!({"version":"seedsong-music/1","dna":dna.to_string(),"sources":song.sources.map(|d|d.to_string()),
+        let metadata = serde_json::json!({"version":song.version.specification(),"dna":dna.to_string(),"sources":song.sources.map(|d|d.to_string()),
             "timbre":format!("{timbre:?}"),"sample_rate":args.sample_rate,"reverb":args.reverb,"loop":args.looping});
         write_new(&meta, &serde_json::to_vec_pretty(&metadata)?)?;
         let start = Instant::now();

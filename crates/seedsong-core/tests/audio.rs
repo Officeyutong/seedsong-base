@@ -8,6 +8,7 @@ use seedsong_core::{
 fn tiny_song() -> Song {
     let d = Dna([0; 32]);
     Song {
+        version: Default::default(),
         params: Params::new(&d),
         sources: [d; 4],
         events: vec![

@@ -1,0 +1,69 @@
+{
+  "recorded_at_utc": "2026-10-24T06:04:00Z",
+  "source_revision": "9d03677b1c15b5af8f39e24ce35d8f7c5f4a200e",
+  "source_working_tree_clean_before_run": true,
+  "algorithm_changed": false,
+  "music_specification": "seedsong-music/1",
+  "environment": {
+    "os": "Linux",
+    "architecture": "x86_64",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "native_tests": {
+    "command": "cargo test --workspace",
+    "exit_code": 0,
+    "passed": 12,
+    "failed": 0,
+    "ignored": 0,
+    "wasm_browser_tests_run": false,
+    "javascript_tests_run": false
+  },
+  "quality": {
+    "executed_command": "cargo run --release -- --check 1000 --report /tmp/seedsong-m1-quality-report.json --threads 4",
+    "exit_code": 0,
+    "count": 1000,
+    "unique_dna_count": 1000,
+    "summary": {
+      "all_targets_pass": false,
+      "ends_on_tonic": 1000,
+      "large_leap_ratio": 0.04281418668142873,
+      "max_song_large_leap_ratio": 0.2222222222222222,
+      "note_count_failures": 0,
+      "out_of_range": 0,
+      "strong_non_chord": 0,
+      "triple_repeat_windows": 999
+    },
+    "additional_statistics": {
+      "total_melody_notes": 80483,
+      "total_intervals": 79483,
+      "total_large_leaps": 3403,
+      "minimum_melody_note_count": 42,
+      "maximum_melody_note_count": 121,
+      "songs_with_triple_repeat_windows": 520,
+      "songs_above_individual_large_leap_target": 166,
+      "songs_failing_any_report_target": 628
+    },
+    "reproducibility": {
+      "executed_command": "cargo run --release -- --check 1000 --report /tmp/seedsong-m1-quality-report-1-thread.json --threads 1",
+      "exit_code": 0,
+      "comparison_exit_code": 0,
+      "threads_compared": [
+        1,
+        4
+      ],
+      "reports_byte_identical": true
+    },
+    "manual_listening_performed": false
+  },
+  "artifacts": {
+    "quality-report.json": {
+      "sha256": "7f4cc7175a91dc6145e01af2866914c189145f9674092145758be0259d518fa3",
+      "bytes": 269893
+    },
+    "workspace-tests.log": {
+      "sha256": "dc1f809e7eb01c2f6b5825d07c15edfdf926694a03b92d90c4af6b911f063a0f",
+      "bytes": 1799
+    }
+  }
+}

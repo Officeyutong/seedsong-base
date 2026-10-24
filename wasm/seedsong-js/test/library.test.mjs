@@ -18,6 +18,7 @@ test('structured serde input and typed WAV result, no browser required', () => {
   const result = music.renderWav({ dna, sampleRate: 22050, loop: true, reverb: 0, timbre: 'piano' });
   assert.ok(result.data instanceof Uint8Array);
   assert.equal(result.dna, dna);
+  assert.equal(result.musicVersion, 2);
   assert.equal(result.sampleRate, 22050);
   assert.equal(result.channels, 2);
   const view = new DataView(result.data.buffer, result.data.byteOffset, result.data.byteLength);
@@ -45,7 +46,17 @@ test('rejects ambiguous types, misspelled fields and invalid render values', () 
     { dna, sampleRate: 22050.5 }, { dna, sampleRate: 0 }, { dna, sampleRate: null },
     { dna, sample_rate: 44100 }, { dna, reverb: NaN }, { dna, reverb: 2 },
     { dna, participants: null }, { dna, participants: { unknown: dna } },
+    { dna, musicVersion: 0 }, { dna, musicVersion: 3 }, { dna, musicVersion: 1.5 }, { dna, musicVersion: '2' },
   ]) assert.throws(() => music.renderWav(options), Error, JSON.stringify(options));
+});
+test('music versions are explicit and legacy output remains available', () => {
+  const options = { dna, sampleRate: 22050, loop: true, reverb: 0 };
+  const legacy = music.renderWav({ ...options, musicVersion: 1 });
+  const current = music.renderWav({ ...options, musicVersion: 2 });
+  assert.equal(legacy.musicVersion, 1);
+  assert.equal(current.musicVersion, 2);
+  assert.equal(legacy.durationSeconds, current.durationSeconds);
+  assert.notDeepEqual(legacy.data, current.data);
 });
 test('ensemble role validation reaches Rust through serde', () => {
   const conductor = new Uint8Array(32); // melody role

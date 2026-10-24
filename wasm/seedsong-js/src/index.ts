@@ -1,7 +1,7 @@
 import * as wasm from "../pkg/seedsong_core.js";
 import bytes from "../pkg/seedsong_core_bg.wasm";
 import type { Dna, RenderOptions, RenderedWav, Seedsong } from "./types.js";
-export type { Dna, Participants, RenderOptions, RenderedWav, Seedsong, Timbre } from "./types.js";
+export type { Dna, MusicVersion, Participants, RenderOptions, RenderedWav, Seedsong, Timbre } from "./types.js";
 
 // Webpack embeds the wasm bytes; initialize once before exposing the library.
 wasm.initSync({ module: bytes });
@@ -20,7 +20,7 @@ function normalizeOptions(options: RenderOptions): object {
   if (!options || typeof options !== "object" || Array.isArray(options)) {
     throw new TypeError("Render options must be an object with a dna field");
   }
-  for (const key of ["sampleRate", "reverb"] as const) {
+  for (const key of ["sampleRate", "reverb", "musicVersion"] as const) {
     if (options[key] !== undefined && typeof options[key] !== "number") {
       throw new TypeError(`${key} must be a number`);
     }

@@ -9,6 +9,10 @@ async function check(context: AudioContext) {
   const wav: RenderedWav = music.renderWav(options);
   const data: Uint8Array = wav.data;
   const channels: 2 = wav.channels;
+  const musicVersion: 1 | 2 = wav.musicVersion;
+  music.renderWav({ dna, musicVersion: 1 });
+  // @ts-expect-error Only the two implemented algorithms are supported.
+  music.renderWav({ dna, musicVersion: 3 });
   const buffer: AudioBuffer = music.renderAudioBuffer(context, { dna });
   // @ts-expect-error Named timbres replace ambiguous booleans.
   music.renderWav({ dna, timbre: true });
@@ -18,6 +22,6 @@ async function check(context: AudioContext) {
   music.renderWav({ dna: [1, 2] });
   // @ts-expect-error Internal event encoders are not part of the API.
   music.encodeDna(dna);
-  return { data, channels, buffer };
+  return { data, channels, musicVersion, buffer };
 }
 void check;
