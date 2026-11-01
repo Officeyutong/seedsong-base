@@ -63,10 +63,12 @@ The Rust crates and JS package are version 0.2.0.
 
 The SVG pattern and displayed DOB traits are unchanged. New music artifacts
 must be referenced as `seedsong-music/2`; existing Clusters must keep their
-original version and decoder reference. The UI repository still pins its own
-submodule commit and must be updated after this change is committed. Any UI
-metadata hardcoded to `seedsong-music/1` should also be updated, and saved tracks
-must include the returned music version.
+original version and decoder reference. The UI repository pins its own
+submodule commit; rebuilding that dependency is required after an upgrade.
+The companion UI now explicitly selects music v2 by default, supports legacy
+v1, and records the returned music version when exporting a matching render.
+Its player also displays the version of the actual rendered audio. These UI
+source changes still need to be published before they affect the public demo.
 
 ## Reproduce and listen
 
@@ -94,4 +96,5 @@ cargo run --release -- --music-version 2 \
 
 Manual listening and browser playback were not performed for this comparison.
 The remaining M1 demo and listening acceptance work is separate from these
-objective results.
+objective results. Use the [acceptance checklist](acceptance.md) to record
+the deployed revision, browser results and listening observations.

@@ -1,6 +1,6 @@
 # seedsong-js
 
-Generate music from 32-byte DNA in JavaScript or TypeScript. The library provides WAV files and WebAudio buffers through a small typed API. Its ESM bundle includes the Rust wasm program and has no runtime npm dependencies.
+Decode DOB/0 traits and DOB/1 SVG covers, and generate music from 32-byte DNA in JavaScript or TypeScript. The library provides WAV files and WebAudio buffers through a small typed API. Its ESM bundle includes the Rust wasm program and has no runtime npm dependencies.
 
 For the Rust CLI, specification, and repository-wide checks, see the [project README](../../README.md).
 
@@ -49,7 +49,7 @@ Use the URL as an audio element's source or an anchor's `href` with a `download`
 
 ## Public API
 
-The only runtime export is:
+The default entry exports:
 
 ```typescript
 createSeedsong(): Promise<Seedsong>
@@ -59,11 +59,14 @@ It takes no arguments and returns the shared library object. The wasm module is 
 
 | Method | Return type | Purpose |
 | --- | --- | --- |
+| `decodeDob0({ dna, pattern })` | `DobOutput[]` | Decode standard DOB/0 traits in Rust |
+| `decodeDob1({ traits, pattern })` | `DobOutput[]` | Append SVG images using a DOB/1 pattern in Rust |
+| `generateMusic(options)` | `GeneratedMusic` | Generate deterministic events, synthesis selectors, source DNA, and SNG1 without PCM synthesis |
 | `randomDna()` | `string` | Generate cryptographically random DNA as 64 lowercase hex digits |
 | `renderWav(options)` | `RenderedWav` | Generate a complete stereo PCM16 WAV with metadata |
 | `renderAudioBuffer(context, options)` | `AudioBuffer` | Generate stereo audio for a caller-owned `AudioContext` |
 
-The package also exports TypeScript types: `Dna`, `MusicVersion`, `Timbre`, `Participants`, `RenderOptions`, `RenderedWav`, and `Seedsong`.
+Public TypeScript types also describe DOB patterns, standard DOB outputs, music events, generation options, and render results. See `dist/types.d.ts` for the full contract.
 
 ### Render options
 
@@ -110,6 +113,127 @@ interface RenderedWav {
 ```
 
 `dna` is the normalized conductor DNA. Save `musicVersion` with DNA and render settings: v2 changes melody pitches, while explicit `musicVersion: 1` retains the original output. The cover traits and DNA byte layout are unchanged. Duration includes the natural release tail unless `loop` is true. The output always contains stereo PCM16 WAV bytes, suitable for a Blob or a file write.
+
+## DOB/0 and DOB/1
+
+Pass the JSON arrays from the Cluster's decoder configuration, not a JSON string
+or the entire Cluster description. The arrays in [pattern.md](../../pattern.md)
+are the Seedsong collection's patterns. Patterns are supplied at runtime and
+are not hardcoded into this library.
+
+```typescript
+import { createSeedsong } from 'seedsong-js';
+import type { Dob0Pattern, Dob1Pattern } from 'seedsong-js';
+
+const library = await createSeedsong();
+const dob0Pattern: Dob0Pattern = [
+  ['Color', 'String', 0, 1, 'options', ['red', 'blue']],
+  ['Tempo', 'Number', 1, 1, 'range', [60, 141]],
+];
+const dob1Pattern: Dob1Pattern = [
+  ['IMAGE.0', 'attributes', '', 'raw', "xmlns='http://www.w3.org/2000/svg'"],
+  ['IMAGE.0', 'elements', 'Color', 'raw', "<circle r='20' fill='{value}'/>"],
+];
+const traits = library.decodeDob0({ dna: '0100', pattern: dob0Pattern });
+const decoded = library.decodeDob1({ traits, pattern: dob1Pattern });
+const svg = decoded.find(item => item.name === 'IMAGE')?.traits[0]?.SVG;
+```
+
+Standard output is an ordered array such as
+`[{ name: 'Tempo', traits: [{ Number: 60 }] }]`; it preserves duplicate names.
+DOB/1 retains public traits and appends `{ name: 'IMAGE', traits: [{ SVG: '…' }] }`
+entries. Consecutive equal full image names form one SVG; `IMAGE.0` and
+`IMAGE.1` produce separate outputs named `IMAGE`. Traits starting with `_` are
+available during SVG assembly and then removed from the final output.
+
+DOB/0 supports `options`, `range`, `rawNumber`, `rawString`, and `utf8`.
+Numeric segments are 1–8 bytes, little-endian. Segment boundaries are clamped
+at the DNA length; UTF-8 strips trailing zero bytes. Range upper bounds are
+exclusive. Unlike music DNA, DOB DNA may contain any positive number of bytes.
+DOB/1 supports raw fragments, `{value}` string substitution, exact string or
+numeric conditions, inclusive numeric ranges, and the `["*"]` wildcard.
+Unmatched conditions skip fragments; a missing named trait ends its image group,
+following the official decoder's behavior. SVG attribute spaces and fragment
+order are preserved. Collection fragments are markup and are not sanitized.
+Use an image element or a sandbox when displaying untrusted SVG.
+
+JS inputs and outputs use safe numeric values. An unsigned 64-bit result that
+cannot be represented exactly as a JS number throws instead of silently
+rounding; the native Rust API supports the full `u64` range. The APIs use
+`serde_wasm_bindgen` and return ordinary objects and arrays, not ES Maps.
+
+The implementation follows the official
+[DOB/0 decoder](https://github.com/sporeprotocol/spore-dob-0/blob/master/src/decoder/mod.rs)
+and [DOB/1 decoder](https://github.com/sporeprotocol/spore-dob-1/blob/master/src/decoder/mod.rs).
+Local regression tests are included; running the official decoder service in
+CI for independent parity verification remains a separate M2 task.
+
+## Generate music without rendering audio
+
+```typescript
+const song = library.generateMusic({
+  dna: new Uint8Array(32),
+  musicVersion: 2,
+  // participants: { bass: bassDna }, // Same conductor/role rules as WAV rendering.
+});
+console.log(song.params.bpm, song.events, song.sources);
+// song.sng1 is the canonical owned Uint8Array, identical to native Song::encode().
+```
+
+`GenerateOptions` accepts only `dna`, `musicVersion`, and `participants`.
+The result contains the normalized DNA, version, ordered events, integer
+synthesis/arrangement selectors in `params`, and all four source DNAs.
+Event start and duration are sixteenth-note steps. One step lasts
+`60 / bpm / 4` seconds before the specification's swing adjustment. Pitches
+are MIDI note numbers (drums use 36/38/42); parameters and source DNA determine
+the timbres and other synthesis choices defined in [spec.md](../../spec.md).
+No AudioContext or PCM synthesis is needed for this call. The dynamically
+loaded WASM contains this music algorithm as well as DOB decoding; it can also
+render complete audio through the existing methods.
+
+## Load the WASM decoder from Cell data
+
+Use the separate loader entry to avoid bundling the default WASM into an app
+that retrieves it from CKB:
+
+```typescript
+import { loadSeedsong } from 'seedsong-js/loader';
+
+// Your light-client-wasm integration resolves the configured Cell and verifies
+// its data hash. Decode a Cell's hexadecimal data to Uint8Array first.
+async function openRecord(cellData: Uint8Array<ArrayBuffer>, dna: string) {
+  const library = await loadSeedsong(cellData);
+  const song = library.generateMusic({ dna });
+  const wav = library.renderWav({ dna, musicVersion: song.musicVersion });
+  return { library, song, wav };
+}
+```
+
+`loadSeedsong(input): Promise<Seedsong>` accepts an `ArrayBuffer`, a
+`Uint8Array<ArrayBuffer>` (including subarrays), or a compiled
+`WebAssembly.Module`. It performs no fetching and accepts no URL. Every call
+creates isolated bindings, memory, and library state. Cache the returned
+library per decoder Cell. The default `createSeedsong()` remains a shared,
+embedded instance and is unaffected by dynamic instances.
+
+Deploy the **raw `dist/decoder.wasm` bytes** as Cell data. Do not store the JS
+bundle or its base64 representation in that Cell. Use the loader from the
+**same build**: wasm-bindgen's generated import names are build-specific.
+Decoder ABI version 1 describes the public contract, not binary compatibility
+between arbitrary Rust/wasm-bindgen builds. Missing required exports, invalid
+WASM, incompatible imports, and unsupported ABI versions reject the promise.
+The loader is specific to this decoder ABI, not an arbitrary DOB WASM runner.
+
+The loader embeds its generated JS glue as text, but no WASM. It imports an
+isolated glue module through a temporary Blob URL in browsers/Workers, revoked
+after initialization. A CSP must permit `blob:` module scripts and WASM
+compilation (`wasm-unsafe-eval` where supported). Node uses an isolated `data:`
+module URL. This mechanism needs neither `eval` nor a server for JS glue.
+
+This release keeps the audio renderer in the same WASM to preserve the existing
+API. The binary is **not yet optimized to M2's ≤60 KB target**, is not `no_std`,
+and has not been deployed on-chain by this change. Its actual size and checksum
+are recorded in `dist/decoder.json` for each build.
 
 ## WebAudio playback
 
@@ -191,7 +315,7 @@ Missing parts use the conductor's DNA. Record all participant DNA as well as the
 
 ## Errors and execution model
 
-Both render methods are synchronous and occupy the current JS thread for the full render. There are no workers, wasm threads, shared memory, or cross-origin isolation requirements.
+Decoding, event generation, and both render methods are synchronous and occupy the current JS thread for the full render. There are no workers, wasm threads, shared memory, or cross-origin isolation requirements.
 
 Invalid DNA, unknown option names, wrong types, invalid values, and mismatched ensemble roles throw JavaScript `Error` objects. Timbres must be named strings; numbers and booleans must use their actual JS types. An unsupported WebAssembly environment fails during import, and browser deployment policies must allow WebAssembly compilation.
 
@@ -208,11 +332,11 @@ src/index.ts + crates/seedsong-core
   → TypeScript emits dist/*.d.ts
 ```
 
-`src/index.ts` is the single entry for wasm initialization and the public API. `src/types.ts` defines public types; `src/wasm.d.ts` types the imported binary. Rust converts named request objects with `serde_wasm_bindgen::from_value` and returns metadata with `serde_wasm_bindgen::to_value`, preserving the audio data as a `Uint8Array`.
+`src/index.ts` initializes embedded WASM. `src/loader.ts` initializes caller-supplied WASM. Both use `src/api.ts` for the public facade. `src/types.ts` defines public types; `src/wasm.d.ts` types the imported binary. Rust converts named request objects with `serde_wasm_bindgen::from_value` and returns metadata with `serde_wasm_bindgen::to_value`, preserving the audio data as a `Uint8Array`.
 
 Webpack builds Rust in release mode for `build` and development mode for `build-debug`. wasm-opt is skipped, so no separate wasm-opt installation is required. The build retains dependency license notices in the output.
 
-Only `dist/`, this README, and npm package metadata are distributed. The bundled JS contains all executable code, including wasm bytes. Generated `pkg/` files and build tools are not required by consumers.
+Only `dist/`, this README, and npm package metadata are distributed. The bundled JS contains all executable code, including wasm bytes. The build also emits `dist/loader.js` without WASM bytes, `dist/decoder.wasm` for Cell deployment, and `dist/decoder.json` containing its size, SHA-256 and decoder ABI version. The embedded binary and emitted binary are identical. Generated `pkg/` files and build tools are not required by consumers.
 
 ## Tests
 

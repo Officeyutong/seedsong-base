@@ -13,6 +13,7 @@ macro_rules! platform_iter {
 }
 pub mod backend;
 pub mod dna;
+pub mod dob;
 pub mod music;
 pub mod rng;
 pub mod synth;

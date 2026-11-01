@@ -4,7 +4,7 @@ Generate 16 bars of music from a 32-byte DNA. Seedsong implements the determinis
 
 The note event sequence is the reproducibility boundary: the same DNA and music version produce the same SNG1 events. Audio rendering uses floating-point arithmetic and may differ across platforms.
 
-[pattern.md](pattern.md) specifies the DOB/0 musical and cover traits, the DOB/1 SVG cover pattern, and Cluster metadata for the proposed on-chain collection. These patterns are a specification; Cluster deployment and browser cover restoration are not implemented by the current audio library.
+[pattern.md](pattern.md) specifies the DOB/0 musical and cover traits, the DOB/1 SVG cover pattern, and Cluster metadata for the proposed on-chain collection. The core library implements DOB/0 trait decoding and DOB/1 SVG assembly for runtime-supplied patterns. Cluster deployment remains separate.
 
 The current algorithm is **seedsong-music/2**. It refines complete melody paths
 with chord, range, repetition and leap-budget constraints while preserving the
@@ -20,7 +20,9 @@ crates/
   seedsong-native/        # Interactive CLI, file export, and quality reports
 wasm/
   seedsong-js/
-    src/index.ts         # Single JS entry: wasm initialization and public API
+    src/index.ts         # Embedded-WASM entry
+    src/loader.ts        # Caller-supplied WASM entry (Cell data)
+    src/api.ts           # Shared typed facade
     src/types.ts         # Public TypeScript types
     src/wasm.d.ts        # Type declaration for imported wasm bytes
     webpack.config.cjs   # Rust build, wasm embedding, and JS bundling
@@ -101,7 +103,7 @@ npm run build:js
 
 For development builds, use `npm run build:js:debug`. From `wasm/seedsong-js`, `npm run build` builds the same package directly. This repository ignores `package-lock.json`, so a fresh checkout uses `npm install`.
 
-The package has one source entry, `wasm/seedsong-js/src/index.ts`. Webpack's `WasmPackPlugin` builds `seedsong-core` through wasm-pack, `arraybuffer-loader` embeds the binary, and the entry initializes it with `initSync`. Webpack emits `dist/index.js`; TypeScript then generates the public declarations. The resulting ESM library includes its wasm and needs no external asset loading or Rust tools at runtime.
+The default `seedsong-js` entry embeds WASM and needs no external assets. The separate `seedsong-js/loader` entry exports `loadSeedsong(wasmBytes)` for raw WASM retrieved from a Cell, without bundling a second WASM. Each dynamic instance has independent bindings and memory. Builds emit both JS entries, declarations, `dist/decoder.wasm`, and a size/checksum manifest. Use the loader and decoder from the same build; arbitrary wasm-bindgen versions are not binary compatible.
 
 Install the built package into another application:
 
@@ -121,9 +123,9 @@ const wav = music.renderWav({
 const blob = new Blob([wav.data], { type: 'audio/wav' });
 ```
 
-The sole runtime export is `createSeedsong()`. Its returned object provides `randomDna()`, `renderWav(options)`, and `renderAudioBuffer(context, options)`. Inputs use named options and accept DNA as hex or a 32-byte `Uint8Array`. Rust uses `serde_wasm_bindgen` for structured conversion and returns owned audio bytes with metadata. Rendering is synchronous on the current JS thread. The caller owns WebAudio playback and context lifetime.
+The default entry exports `createSeedsong()`; the loader entry exports `loadSeedsong()`. Its returned object provides `decodeDob0()`, `decodeDob1()`, `generateMusic()`, `randomDna()`, `renderWav()`, and `renderAudioBuffer()`. The loader returns the same interface. `generateMusic()` returns deterministic events, synthesis selectors, source DNA and canonical SNG1 bytes without rendering PCM. Inputs use named options and accept DNA as hex or a `Uint8Array`; music requires exactly 32 bytes, while DOB decoding accepts any positive DNA length. Rust uses `serde_wasm_bindgen` for structured conversion and returns owned audio bytes with metadata. Rendering is synchronous on the current JS thread. The caller owns WebAudio playback and context lifetime.
 
-See the [JS package README](wasm/seedsong-js/README.md) for the complete API, WebAudio playback, Node.js file export, ensembles, and error behavior.
+See the [JS package README](wasm/seedsong-js/README.md) for DOB patterns, dynamic Cell loading, ABI requirements, the complete API, and playback examples. The current decoder retains audio synthesis and has not yet met M2's ≤60 KB/no_std optimization target.
 
 ## Rust library and backends
 

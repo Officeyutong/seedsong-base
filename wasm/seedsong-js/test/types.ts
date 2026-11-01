@@ -25,3 +25,17 @@ async function check(context: AudioContext) {
   return { data, channels, musicVersion, buffer };
 }
 void check;
+
+import { loadSeedsong } from "../dist/loader.js";
+async function decoderTypes() {
+  const library = await loadSeedsong(new Uint8Array());
+  const traits = library.decodeDob0({ dna: "00", pattern: [["n", "Number", 0, 1, "rawNumber"]] });
+  library.decodeDob1({ traits, pattern: [["IMAGE.0", "elements", "n", "range", [[[0, 255], "<g/>"]]]] });
+  const events = library.generateMusic({ dna, musicVersion: 2 }).events;
+  // @ts-expect-error Cell loaders accept bytes, never an implicit network URL.
+  loadSeedsong("https://example.com/decoder.wasm");
+  // @ts-expect-error Generation only accepts musical inputs, not render settings.
+  library.generateMusic({ dna, sampleRate: 22050 });
+  return events;
+}
+void decoderTypes;

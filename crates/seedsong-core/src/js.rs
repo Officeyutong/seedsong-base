@@ -1,4 +1,5 @@
 //! Private wasm bridge. The supported JavaScript API is wasm/seedsong-js.
+use crate::dob::{self, DobOutput};
 use crate::{
     backend::{MusicBackend, PcmAudio, web_audio::WebAudioBackend},
     dna::Dna,
@@ -6,8 +7,75 @@ use crate::{
     synth::{self, Options, Timbre},
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use wasm_bindgen::prelude::*;
 use web_sys::{AudioBuffer, AudioContext};
+
+/// Version of the JS decoder contract, separate from the music algorithm version.
+#[wasm_bindgen(js_name = decoderAbiVersion)]
+pub fn decoder_abi_version() -> u32 {
+    1
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Dob0Request {
+    dna: String,
+    pattern: Vec<Vec<Value>>,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Dob1Request {
+    traits: Vec<DobOutput>,
+    pattern: Vec<Vec<Value>>,
+}
+fn dob_result(value: &impl Serialize) -> Result<JsValue, JsValue> {
+    // Standard DOB output must be ordinary JS objects, not ES Maps. Unsafe
+    // 64-bit numbers are rejected by serde-wasm-bindgen rather than rounded.
+    value
+        .serialize(&serde_wasm_bindgen::Serializer::new().serialize_maps_as_objects(true))
+        .map_err(error)
+}
+#[wasm_bindgen(js_name = decodeDob0)]
+pub fn decode_dob0(request: JsValue) -> Result<JsValue, JsValue> {
+    validate_keys(&request, &["dna", "pattern"])?;
+    let request: Dob0Request = serde_wasm_bindgen::from_value(request).map_err(error)?;
+    let dna = dob::parse_dna(&request.dna).map_err(error)?;
+    dob_result(&dob::decode_dob0(&dna, &request.pattern).map_err(|e| error(format!("{e:#}")))?)
+}
+#[wasm_bindgen(js_name = decodeDob1)]
+pub fn decode_dob1(request: JsValue) -> Result<JsValue, JsValue> {
+    validate_keys(&request, &["traits", "pattern"])?;
+    let request: Dob1Request = serde_wasm_bindgen::from_value(request).map_err(error)?;
+    dob_result(&dob::decode_dob1(&request.traits, &request.pattern).map_err(error)?)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MusicResult {
+    dna: String,
+    music_version: u8,
+    params: Params,
+    events: Vec<crate::music::Event>,
+    sources: [String; 4],
+    #[serde(with = "serde_wasm_bindgen::preserve")]
+    sng1: js_sys::Uint8Array,
+}
+/// Generate deterministic events and synthesis selectors without rendering PCM.
+#[wasm_bindgen(js_name = generateMusic)]
+pub fn generate_music(request: JsValue) -> Result<JsValue, JsValue> {
+    validate_keys(&request, &["dna", "musicVersion", "participants"])?;
+    let (song, _, dna) = RenderRequest::decode(request, Options::default().rate)?;
+    let sng1 = js_sys::Uint8Array::from(song.encode().as_slice());
+    dob_result(&MusicResult {
+        dna,
+        music_version: song.version as u8,
+        sources: song.sources.map(|d| d.to_string()),
+        params: song.params,
+        events: song.events,
+        sng1,
+    })
+}
 
 #[derive(Default, Deserialize)]
 #[serde(rename_all = "lowercase")]

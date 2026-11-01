@@ -102,7 +102,8 @@ const RHYTHMS: [[&str; 4]; 3] = [
 ];
 const ENDINGS: [&str; 3] = ["x---------------", "x-------x-------", "x---x-----------"];
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Params {
     pub bpm: u8,
     pub pc: u8,
@@ -173,7 +174,7 @@ impl Params {
             .collect()
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 pub struct Event {
     pub start: u16,
     pub duration: u16,

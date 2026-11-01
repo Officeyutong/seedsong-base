@@ -9,7 +9,7 @@ const dna = '9a401c07e8553fa2710c0000000000000209b62d000000000000000000000000';
 
 test('minimal public API and shared initialization', () => {
   assert.deepEqual(Object.keys(entry), ['createSeedsong']);
-  assert.deepEqual(Object.keys(music).sort(), ['randomDna', 'renderAudioBuffer', 'renderWav']);
+  assert.deepEqual(Object.keys(music).sort(), ['decodeDob0', 'decodeDob1', 'generateMusic', 'randomDna', 'renderAudioBuffer', 'renderWav']);
   assert.equal(music, concurrent);
   assert.ok(Object.isFrozen(music));
   assert.match(music.randomDna(), /^[a-f0-9]{64}$/);

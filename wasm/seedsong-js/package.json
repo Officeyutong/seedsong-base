@@ -1,7 +1,7 @@
 {
   "name": "seedsong-js",
   "version": "0.2.0",
-  "description": "DNA music generation with Rust WebAssembly and WebAudio",
+  "description": "DNA music generation and DOB/0\u2013DOB/1 decoding with embedded or dynamically loaded Rust WebAssembly",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,7 +9,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./loader": {
+      "types": "./dist/loader.d.ts",
+      "import": "./dist/loader.js"
+    },
+    "./decoder.wasm": "./dist/decoder.wasm"
   },
   "files": [
     "dist",
