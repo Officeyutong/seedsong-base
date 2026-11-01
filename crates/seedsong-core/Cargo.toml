@@ -26,6 +26,12 @@ web-sys = { version = "0.3", features = ["AudioContext", "AudioBuffer", "AudioBu
 [dev-dependencies]
 serde_json.workspace = true
 
+# Independent reference implementations used only by native tests/examples.
+# Pin commits so upstream changes require an explicit review.
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+spore-dob-0 = { git = "https://github.com/sporeprotocol/spore-dob-0", rev = "a592680c9a507a014ebf505075cbef0b21382799" }
+spore-dob-1 = { git = "https://github.com/sporeprotocol/spore-dob-1", rev = "43ad12a24bdee2df9288d772097f6e0ab2fc22fb" }
+
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 wasm-bindgen-futures = "0.4"

@@ -7,6 +7,7 @@
   "scripts": {
     "build:js": "npm run build --workspace seedsong-js",
     "build:js:debug": "npm run build-debug --workspace seedsong-js",
-    "test:js": "npm test --workspace seedsong-js"
+    "test:js": "npm test --workspace seedsong-js",
+    "test:dob": "npm run test:dob --workspace seedsong-js"
   }
 }

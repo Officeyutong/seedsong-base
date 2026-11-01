@@ -45,3 +45,7 @@ mod web_audio_tests;
 
 #[cfg(target_arch = "wasm32")]
 mod js;
+
+// Independent official decoders are native-only development dependencies.
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod dob_official_tests;

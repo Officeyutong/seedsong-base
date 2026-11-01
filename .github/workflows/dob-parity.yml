@@ -1,0 +1,46 @@
+name: Official DOB compatibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dob-parity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dob-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Install WASM build tools
+        run: cargo install wasm-pack --locked
+      - name: Install JavaScript build dependencies
+        run: npm install
+      - name: Compare native decoder with official implementations
+        run: cargo test --locked -p seedsong-core dob_official_tests::
+      - name: Compare actual WASM output with official implementations
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:dob --workspace seedsong-js 2>&1 | tee dob-parity.log
+      - name: Preserve compatibility test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dob-parity-output
+          path: dob-parity.log
+          if-no-files-found: ignore

@@ -180,7 +180,7 @@ The canonical cover is the exact SVG string assembled by the official decoder. P
 
 Use the modern `description.dob.ver = 1` envelope with two decoder entries. The `description` field of Cluster data is a **JSON string**. Inside that string, each `pattern` is a JSON array, not a second string containing JSON. This matches [CCC's encoder](https://github.com/ckb-devrel/ccc/blob/master/packages/spore/src/dob/api/encode.ts) and [DOB/1 example](https://github.com/sporeprotocol/dob-cookbook/blob/main/examples/dob1/0.basic-shape.ts).
 
-The following JavaScript constructs the string from the two arrays above, assigned to `dob0Pattern` and `dob1Pattern` respectively:
+For a bare WASM Cell, the following JavaScript constructs the string from the two arrays above, assigned to `dob0Pattern` and `dob1Pattern` respectively. The current ZIP deployment uses the archive extension described below instead of this bare-Cell music reference:
 
 ```javascript
 function makeClusterDescription(dob0Pattern, dob1Pattern, musicDecoderHash) {
@@ -225,9 +225,40 @@ Use immutable `code_hash` references for v1. The proposal also permits Type ID r
 
 `seedsong` is a project extension, not a new DOB protocol version or a standard wallet audio field. Generic DOB clients only need `dob` to recover the cover and traits. Seedsong-aware clients additionally resolve `seedsong.music.decoder` and execute music locally. Do not invent an `AUDIO` trait or append music WASM as a third standard decoder.
 
-The music hash must come from an actual deployed artifact; this document intentionally supplies no placeholder deployment hash. The current JS library bundles WASM and its wasm-bindgen initialization code. Fetching a WASM Cell alone does not make it compatible with that library: an on-chain-loading release must also provide matching wasm-bindgen glue or define and implement a standalone ABI. This document fixes discovery metadata without claiming that loader or deployment already exists.
+The music hash must come from an actual deployed artifact. The JS library supports embedded WASM and caller-supplied WASM bytes. A dynamic release must include its matching wasm-bindgen glue; the ZIP deployment packages the generated loader and WASM together.
 
 If using CCC's `encodeClusterDescriptionForDob1`, convert each tuple into its corresponding `PatternElementDob0` or `PatternElementDob1` object first. That helper installs tuple serialization on object-form inputs; do not pass these already serialized tuples to it. Direct `JSON.stringify` as above preserves the required tuple format and the Seedsong extension.
+
+### 5.1 ZIP decoder release
+
+The deployed release stores `decoder.wasm`, `loader.js`, build metadata and documents inside a `seedsong-archive/1` ZIP Cell. Its Cluster description keeps the standard `dob` object above unchanged and uses this music reference under the Seedsong extension:
+
+```json
+{
+  "spec": "seedsong-music/2",
+  "decoder": {
+    "type": "archive",
+    "format": "zip",
+    "schema": "seedsong-archive/1",
+    "out_point": {
+      "tx_hash": "0x4d54a43844847bd053b8cedf6bf70deb5cdb5904a43378f6db7c4426887a22ba",
+      "index": "0x0"
+    },
+    "data_hash": "0x8fe339ca81b742c4ffaa37a982be0f004fd0092a1c768df7614f82af1f041f97",
+    "entry": "decoder.wasm",
+    "loader": "loader.js",
+    "manifest": "bundle.json",
+    "wasm_sha256": "69df207a3e6ebfc5bf98f46ef26aabe3ebf2266bd9d212ea8eb374f79a8706c0",
+    "abi": 1
+  }
+}
+```
+
+`data_hash` identifies the compressed Cell data; `wasm_sha256` identifies the raw WASM entry after extraction. A consumer must verify the archive, unpack it, and pass the WASM bytes to the matching loader. Do not interpret the ZIP's data hash as the raw WASM hash or register this archive as a third standard DOB decoder.
+
+The native `seedsong-deploy cluster-create` command in the UI repository derives the patterns from that archived release, packs standard ClusterDataV2, and creates the official testnet Cluster V2 type with its CoBuild action. Its `seedsong.documents` maps `pattern`, `music`, and `legacy` to archive entry names. Its minting metadata records `mode: "owner-authorized"`, `authorization: "current-cluster-lock"`, the initial owner lock hash, and that no public proxy is created. Minting authorization follows the current Cluster lock; the recorded initial owner hash is provenance only.
+
+The Cluster Cell itself remains uncompressed standard Spore data with a JSON description string. Only the decoder archive uses ZIP. Changing this discovery extension does not change the DOB pattern arrays or their `seedsong-pattern/1` identifier. Creating the Cluster and verifying wallet display are separate actions; the command's implementation is not evidence that a Cluster has already been minted.
 
 ## 6. Reference DNA
 

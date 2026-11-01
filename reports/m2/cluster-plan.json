@@ -1,0 +1,552 @@
+{
+  "archive": {
+    "dataHash": "0x8fe339ca81b742c4ffaa37a982be0f004fd0092a1c768df7614f82af1f041f97",
+    "outPoint": {
+      "index": "0x0",
+      "tx_hash": "0x4d54a43844847bd053b8cedf6bf70deb5cdb5904a43378f6db7c4426887a22ba"
+    },
+    "wasmSha256": "69df207a3e6ebfc5bf98f46ef26aabe3ebf2266bd9d212ea8eb374f79a8706c0"
+  },
+  "capacityCkb": "7123.00000000",
+  "capacityShannons": 712300000000,
+  "clusterContract": {
+    "codeHash": "0x0bbe768b519d8ea7b96d58f1182eb7e6ef96c541fbd9526975077ee09f049058",
+    "hashType": "data1",
+    "index": 0,
+    "txHash": "0xcebb174d6e300e26074aea2f5dbd7f694bb4fe3de52b6dfe205e54f90164510a"
+  },
+  "clusterDataBytes": 6997,
+  "clusterId": null,
+  "description": {
+    "description": "Seedsong: deterministic music and SVG covers from 32-byte DNA.",
+    "dob": {
+      "decoders": [
+        {
+          "decoder": {
+            "hash": "0x13cac78ad8482202f18f9df4ea707611c35f994375fa03ae79121312dda9925c",
+            "type": "code_hash"
+          },
+          "pattern": [
+            [
+              "Mode",
+              "String",
+              0,
+              1,
+              "options",
+              [
+                "Major",
+                "Major",
+                "Major",
+                "Major",
+                "Major",
+                "Major",
+                "Major",
+                "Major",
+                "Minor",
+                "Minor",
+                "Minor",
+                "Minor",
+                "Minor",
+                "Minor",
+                "Minor",
+                "Minor",
+                "Dorian",
+                "Dorian",
+                "Dorian",
+                "Dorian",
+                "Mixolydian",
+                "Mixolydian",
+                "Mixolydian",
+                "Mixolydian",
+                "Major Pentatonic",
+                "Major Pentatonic",
+                "Major Pentatonic",
+                "Major Pentatonic",
+                "Minor Pentatonic",
+                "Minor Pentatonic",
+                "Minor Pentatonic",
+                "Lydian"
+              ]
+            ],
+            [
+              "Tempo",
+              "Number",
+              1,
+              1,
+              "range",
+              [
+                60,
+                141
+              ]
+            ],
+            [
+              "Contour",
+              "String",
+              3,
+              1,
+              "options",
+              [
+                "Smooth",
+                "Smooth",
+                "Smooth",
+                "Balanced",
+                "Balanced",
+                "Balanced",
+                "Balanced",
+                "Leapy"
+              ]
+            ],
+            [
+              "Lead",
+              "String",
+              4,
+              1,
+              "options",
+              [
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Soft Sine",
+                "Warm Organ",
+                "Warm Organ",
+                "Warm Organ",
+                "Warm Organ",
+                "Warm Organ",
+                "Warm Organ",
+                "Warm Organ",
+                "E-Piano",
+                "E-Piano",
+                "E-Piano",
+                "E-Piano",
+                "E-Piano",
+                "E-Piano",
+                "Glass Bell",
+                "Glass Bell",
+                "Glass Bell",
+                "Glass Bell",
+                "Glass Bell",
+                "Music Box",
+                "Music Box",
+                "Music Box",
+                "Crystal"
+              ]
+            ],
+            [
+              "Bass",
+              "String",
+              5,
+              1,
+              "options",
+              [
+                "Sine Sub",
+                "Sine Sub",
+                "Round FM",
+                "Pluck Bass"
+              ]
+            ],
+            [
+              "Palette",
+              "String",
+              10,
+              1,
+              "options",
+              [
+                "Midnight",
+                "Slate",
+                "Plum",
+                "Forest"
+              ]
+            ],
+            [
+              "Shape",
+              "String",
+              11,
+              1,
+              "options",
+              [
+                "Orb",
+                "Diamond",
+                "Wave",
+                "Seed"
+              ]
+            ],
+            [
+              "Texture",
+              "String",
+              12,
+              1,
+              "options",
+              [
+                "Grid",
+                "Waves",
+                "Rays",
+                "Dots"
+              ]
+            ],
+            [
+              "Accent",
+              "String",
+              13,
+              1,
+              "options",
+              [
+                "None",
+                "Stars",
+                "Satellites",
+                "Orbit"
+              ]
+            ],
+            [
+              "Orientation",
+              "String",
+              14,
+              1,
+              "options",
+              [
+                "North",
+                "East",
+                "South",
+                "West"
+              ]
+            ],
+            [
+              "Frame",
+              "String",
+              15,
+              1,
+              "options",
+              [
+                "None",
+                "Single",
+                "Double",
+                "Corners"
+              ]
+            ],
+            [
+              "Role",
+              "String",
+              16,
+              1,
+              "options",
+              [
+                "Melody",
+                "Bass",
+                "Harmony",
+                "Rhythm"
+              ]
+            ],
+            [
+              "Key",
+              "String",
+              17,
+              1,
+              "options",
+              [
+                "C",
+                "C#",
+                "D",
+                "D#",
+                "E",
+                "F",
+                "F#",
+                "G",
+                "G#",
+                "A",
+                "A#",
+                "B"
+              ]
+            ],
+            [
+              "Form",
+              "String",
+              18,
+              1,
+              "options",
+              [
+                "AABA",
+                "ABAB",
+                "AABB",
+                "ABAC"
+              ]
+            ]
+          ]
+        },
+        {
+          "decoder": {
+            "hash": "0xda3525549b72970b4c95f5b5749357f20d1293d335710b674f09c32f7d54b6dc",
+            "type": "code_hash"
+          },
+          "pattern": [
+            [
+              "IMAGE.0",
+              "attributes",
+              "",
+              "raw",
+              "xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='512' height='512'"
+            ],
+            [
+              "IMAGE.0",
+              "attributes",
+              "Mode",
+              "options",
+              [
+                [
+                  "Major",
+                  "color='#FFBF69'"
+                ],
+                [
+                  "Minor",
+                  "color='#7AA2F7'"
+                ],
+                [
+                  "Dorian",
+                  "color='#65D6C5'"
+                ],
+                [
+                  "Mixolydian",
+                  "color='#FF9866'"
+                ],
+                [
+                  "Major Pentatonic",
+                  "color='#F4D35E'"
+                ],
+                [
+                  "Minor Pentatonic",
+                  "color='#B39DDB'"
+                ],
+                [
+                  "Lydian",
+                  "color='#FF9ED2'"
+                ]
+              ]
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "Palette",
+              "options",
+              [
+                [
+                  "Midnight",
+                  "<rect width='512' height='512' fill='#0B1026'/>"
+                ],
+                [
+                  "Slate",
+                  "<rect width='512' height='512' fill='#14232E'/>"
+                ],
+                [
+                  "Plum",
+                  "<rect width='512' height='512' fill='#27162E'/>"
+                ],
+                [
+                  "Forest",
+                  "<rect width='512' height='512' fill='#102A25'/>"
+                ]
+              ]
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "Texture",
+              "options",
+              [
+                [
+                  "Grid",
+                  "<path d='M64 0V512M128 0V512M192 0V512M256 0V512M320 0V512M384 0V512M448 0V512M0 64H512M0 128H512M0 192H512M0 256H512M0 320H512M0 384H512M0 448H512' fill='none' stroke='#FFFFFF' stroke-opacity='.08'/>"
+                ],
+                [
+                  "Waves",
+                  "<path d='M0 96Q128 32 256 96T512 96M0 192Q128 128 256 192T512 192M0 288Q128 224 256 288T512 288M0 384Q128 320 256 384T512 384' fill='none' stroke='#FFFFFF' stroke-opacity='.1' stroke-width='2'/>"
+                ],
+                [
+                  "Rays",
+                  "<path d='M256 256L0 0M256 256L256 0M256 256L512 0M256 256L512 256M256 256L512 512M256 256L256 512M256 256L0 512M256 256L0 256' fill='none' stroke='#FFFFFF' stroke-opacity='.1' stroke-width='2'/>"
+                ],
+                [
+                  "Dots",
+                  "<g fill='#FFFFFF' fill-opacity='.15'><circle cx='96' cy='96' r='3'/><circle cx='256' cy='96' r='3'/><circle cx='416' cy='96' r='3'/><circle cx='96' cy='256' r='3'/><circle cx='416' cy='256' r='3'/><circle cx='96' cy='416' r='3'/><circle cx='256' cy='416' r='3'/><circle cx='416' cy='416' r='3'/></g>"
+                ]
+              ]
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "Orientation",
+              "options",
+              [
+                [
+                  "North",
+                  "<g transform='rotate(0 256 256)'>"
+                ],
+                [
+                  "East",
+                  "<g transform='rotate(90 256 256)'>"
+                ],
+                [
+                  "South",
+                  "<g transform='rotate(180 256 256)'>"
+                ],
+                [
+                  "West",
+                  "<g transform='rotate(270 256 256)'>"
+                ]
+              ]
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "Tempo",
+              "options",
+              [
+                [
+                  [
+                    60,
+                    79
+                  ],
+                  "<g fill='none' stroke='currentColor' stroke-opacity='.35' stroke-width='3'><circle cx='256' cy='256' r='164'/><circle cx='256' cy='256' r='184'/></g>"
+                ],
+                [
+                  [
+                    80,
+                    109
+                  ],
+                  "<g fill='none' stroke='currentColor' stroke-opacity='.35' stroke-width='3'><circle cx='256' cy='256' r='174'/><path d='M256 64L448 256L256 448L64 256Z'/></g>"
+                ],
+                [
+                  [
+                    110,
+                    140
+                  ],
+                  "<path d='M256 56L456 256L256 456L56 256ZM256 80L432 256L256 432L80 256Z' fill='none' stroke='currentColor' stroke-opacity='.35' stroke-width='3'/>"
+                ]
+              ]
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "Shape",
+              "options",
+              [
+                [
+                  "Orb",
+                  "<circle cx='256' cy='256' r='116' fill='currentColor'/><circle cx='224' cy='224' r='32' fill='#FFFFFF' fill-opacity='.2'/>"
+                ],
+                [
+                  "Diamond",
+                  "<path d='M256 116L396 256L256 396L116 256Z' fill='currentColor'/><path d='M256 148L364 256H256Z' fill='#FFFFFF' fill-opacity='.2'/>"
+                ],
+                [
+                  "Wave",
+                  "<path d='M116 256C156 116 216 116 256 256S356 396 396 256' fill='none' stroke='currentColor' stroke-width='40' stroke-linecap='round'/>"
+                ],
+                [
+                  "Seed",
+                  "<path d='M256 112C416 208 416 336 256 400C96 336 96 208 256 112Z' fill='currentColor'/><path d='M256 152V360' fill='none' stroke='#FFFFFF' stroke-opacity='.25' stroke-width='4'/>"
+                ]
+              ]
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "",
+              "raw",
+              "</g>"
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "Accent",
+              "options",
+              [
+                [
+                  "None",
+                  ""
+                ],
+                [
+                  "Stars",
+                  "<path d='M96 112V144M80 128H112M416 368V400M400 384H432' fill='none' stroke='#FFFFFF' stroke-width='4' stroke-linecap='round'/>"
+                ],
+                [
+                  "Satellites",
+                  "<g fill='currentColor'><circle cx='104' cy='176' r='12'/><circle cx='408' cy='336' r='8'/><circle cx='368' cy='104' r='5'/></g>"
+                ],
+                [
+                  "Orbit",
+                  "<ellipse cx='256' cy='256' rx='208' ry='76' transform='rotate(-25 256 256)' fill='none' stroke='#FFFFFF' stroke-opacity='.55' stroke-width='3'/>"
+                ]
+              ]
+            ],
+            [
+              "IMAGE.0",
+              "elements",
+              "Frame",
+              "options",
+              [
+                [
+                  "None",
+                  ""
+                ],
+                [
+                  "Single",
+                  "<rect x='24' y='24' width='464' height='464' rx='16' fill='none' stroke='#FFFFFF' stroke-opacity='.4' stroke-width='2'/>"
+                ],
+                [
+                  "Double",
+                  "<g fill='none' stroke='#FFFFFF' stroke-opacity='.4' stroke-width='2'><rect x='24' y='24' width='464' height='464' rx='16'/><rect x='32' y='32' width='448' height='448' rx='12'/></g>"
+                ],
+                [
+                  "Corners",
+                  "<path d='M24 96V24H96M416 24H488V96M488 416V488H416M96 488H24V416' fill='none' stroke='#FFFFFF' stroke-opacity='.6' stroke-width='3'/>"
+                ]
+              ]
+            ]
+          ]
+        }
+      ],
+      "ver": 1
+    },
+    "seedsong": {
+      "documents": {
+        "legacy": "spec-v1.md",
+        "music": "spec.md",
+        "pattern": "pattern.md"
+      },
+      "minting": {
+        "authorization": "current-cluster-lock",
+        "initial_owner_lock_hash": "0x72a03efda664bf2d4482a615a8f73af9a9a42721495b9c4042434341c0657b07",
+        "mode": "owner-authorized",
+        "public_proxy": false
+      },
+      "music": {
+        "decoder": {
+          "abi": 1,
+          "data_hash": "0x8fe339ca81b742c4ffaa37a982be0f004fd0092a1c768df7614f82af1f041f97",
+          "entry": "decoder.wasm",
+          "format": "zip",
+          "loader": "loader.js",
+          "manifest": "bundle.json",
+          "out_point": {
+            "index": "0x0",
+            "tx_hash": "0x4d54a43844847bd053b8cedf6bf70deb5cdb5904a43378f6db7c4426887a22ba"
+          },
+          "schema": "seedsong-archive/1",
+          "type": "archive",
+          "wasm_sha256": "69df207a3e6ebfc5bf98f46ef26aabe3ebf2266bd9d212ea8eb374f79a8706c0"
+        },
+        "spec": "seedsong-music/2"
+      },
+      "pattern": "seedsong-pattern/1"
+    }
+  },
+  "name": "Seedsong",
+  "network": "ckb_testnet",
+  "note": "No transaction sent. Cluster ID derives from the actual first funding input during creation. Minting requires owner authorization; no public mint proxy is created.",
+  "ownerAddress": "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqf5zct7a5mz3n76aejy9r64r0cpj525pxg4guf2c",
+  "schema": "seedsong-cluster-plan/1"
+}

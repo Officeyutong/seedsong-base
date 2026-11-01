@@ -26,7 +26,8 @@
     "build-debug": "webpack --mode=development && tsc --emitDeclarationOnly -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "test": "npm run build && npm run typecheck && node --test test/*.test.mjs",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "test:dob": "npm run build && node --test test/dob-parity.test.mjs"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

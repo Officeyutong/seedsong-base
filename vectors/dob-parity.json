@@ -1,0 +1,57 @@
+{
+  "schema": "seedsong-dob-parity/1",
+  "cases": [
+    {
+      "name": "little-endian segments, clamping, UTF-8, hidden traits and inclusive range endpoints",
+      "dnas": ["ff0141000000", "000041000000", "0c0041000000", "3c0041000000", "480041000000"],
+      "dob0": [
+        ["n", "Number", 0, 2, "rawNumber"],
+        ["r", "Number", 0, 1, "range", [60, 141]],
+        ["o", "String", 0, 2, "options", ["A", "B", "C"]],
+        ["_text", "String", 2, 100, "utf8"],
+        ["hex", "String", 1, 100, "rawString"],
+        ["empty", "String", 999, 1, "rawString"]
+      ],
+      "dob1": [
+        ["IMAGE.0", "attributes", "", "raw", "xmlns='http://www.w3.org/2000/svg'"],
+        ["IMAGE.0", "attributes", "o", "raw", "data-option='{value}'"],
+        ["IMAGE.0", "elements", "_text", "raw", "<text>{value}:{value}</text>"],
+        ["IMAGE.0", "elements", "r", "range", [[[60, 72], "<a/>"], [["*"], "<b/>"]]],
+        ["IMAGE.0", "elements", "o", "options", [["A", "<A/>"], ["B", "<B/>"], [["*"], "<C/>"]]]
+      ]
+    },
+    {
+      "name": "duplicate names, missing traits, omitted fragments and nonconsecutive image groups",
+      "dnas": ["00", "01", "02", "ff"],
+      "dob0": [
+        ["_color", "String", 0, 1, "options", ["red", "blue"]],
+        ["Tempo", "Number", 0, 1, "range", [60, 141]],
+        ["Tempo", "Number", 0, 1, "rawNumber"]
+      ],
+      "dob1": [
+        ["IMAGE.0", "elements", "_color", "raw", "<g fill='{value}'/>"],
+        ["IMAGE.0", "elements", "Tempo", "options", [[60, "<first/>"], [61, "<second/>"]]],
+        ["IMAGE.0", "elements", "missing", "raw", "never emitted"],
+        ["IMAGE.0", "elements", "", "raw", "also never emitted"],
+        ["IMAGE.1", "elements", "Tempo", "range", [[[60, 61], "<range/>"], [["*"], "<fallback/>"]]],
+        ["IMAGE.0", "elements", "", "raw", "<last/>"]
+      ]
+    },
+    {
+      "name": "empty pattern preserves DOB/0 output",
+      "dnas": ["00", "ff"],
+      "dob0": [["n", "Number", 0, 1, "rawNumber"]],
+      "dob1": []
+    },
+    {
+      "name": "empty DOB/0 with literal SVG and precise attribute whitespace",
+      "dnas": ["00"],
+      "dob0": [],
+      "dob1": [
+        ["IMAGE.0", "attributes", "", "raw", " viewBox='0 0 2 2' "],
+        ["IMAGE.0", "attributes", "", "raw", "data-x='é'"],
+        ["IMAGE.0", "elements", "", "raw", "<text>音乐 &amp; sound</text>\n"]
+      ]
+    }
+  ]
+}

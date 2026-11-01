@@ -30,8 +30,8 @@ does not establish that a different implementation could never fit in 60 KB.
 
 ## What remains required
 
-- Store the complete decoder as raw WASM Cell data, including the music
-  generation algorithm. Keeping only DNA on-chain and fetching the algorithm
+- Store the complete decoder, including the music generation algorithm, in the
+  on-chain ZIP archive. Extract the raw WASM entry before execution. Keeping only DNA on-chain and fetching the algorithm
   from an external server would not satisfy this design.
 - Allow the JS loader to instantiate the WASM bytes retrieved from that Cell.
 - Publish the actual deployed artifact size, hash, Cell location and transaction.

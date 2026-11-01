@@ -165,8 +165,18 @@ rounding; the native Rust API supports the full `u64` range. The APIs use
 The implementation follows the official
 [DOB/0 decoder](https://github.com/sporeprotocol/spore-dob-0/blob/master/src/decoder/mod.rs)
 and [DOB/1 decoder](https://github.com/sporeprotocol/spore-dob-1/blob/master/src/decoder/mod.rs).
-Local regression tests are included; running the official decoder service in
-CI for independent parity verification remains a separate M2 task.
+Independent parity unit tests call these unmodified official libraries at pinned
+commits through a native test adapter and compare the actual compiled WASM API.
+From this directory, run `npm run test:dob`; it rebuilds WASM and checks 1,131
+collection DNA cases plus the semantic vectors in `vectors/dob-parity.json`.
+Every SVG is compared as exact UTF-8 bytes, and ordered traits are also checked.
+`npm test` includes the same suite. Rust and Cargo are required for the native
+reference adapter; its dependencies are downloaded on the first build, but
+comparison itself runs without an HTTP service or browser. The repository's
+[compatibility workflow](../../.github/workflows/dob-parity.yml) runs these tests
+and retains the output. See the [root testing guide](../../README.md#official-dob-compatibility-unit-tests)
+for pinned reference revisions and coverage. This verifies decoder algorithms,
+not a deployed service's transport or wallet display.
 
 ## Generate music without rendering audio
 
