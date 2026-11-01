@@ -125,7 +125,9 @@ const blob = new Blob([wav.data], { type: 'audio/wav' });
 
 The default entry exports `createSeedsong()`; the loader entry exports `loadSeedsong()`. Its returned object provides `decodeDob0()`, `decodeDob1()`, `generateMusic()`, `randomDna()`, `renderWav()`, and `renderAudioBuffer()`. The loader returns the same interface. `generateMusic()` returns deterministic events, synthesis selectors, source DNA and canonical SNG1 bytes without rendering PCM. Inputs use named options and accept DNA as hex or a `Uint8Array`; music requires exactly 32 bytes, while DOB decoding accepts any positive DNA length. Rust uses `serde_wasm_bindgen` for structured conversion and returns owned audio bytes with metadata. Rendering is synchronous on the current JS thread. The caller owns WebAudio playback and context lifetime.
 
-See the [JS package README](wasm/seedsong-js/README.md) for DOB patterns, dynamic Cell loading, ABI requirements, the complete API, and playback examples. The current decoder retains audio synthesis and has not yet met M2's ≤60 KB/no_std optimization target.
+See the [JS package README](wasm/seedsong-js/README.md) for DOB patterns, dynamic Cell loading, ABI requirements, the complete API, and playback examples. The current decoder retains audio synthesis and uses Rust `std`. The original M2 ≤60 KB requirement will not be met in this iteration; see the [proposed M2 scope adjustment](reports/m2/scope-adjustment.md). This changes the proposed size commitment, not the requirement to store the decoder and its music-generation algorithm on-chain.
+
+The decoder and companion files are [deployed as a ZIP archive on CKB testnet](reports/m2/README.md). The deployment record includes the archive OutPoint, file hashes, occupied capacity, and a runtime check using the downloaded WASM. Unzip the Cell data before loading its WASM.
 
 ## Rust library and backends
 

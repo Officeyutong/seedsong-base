@@ -231,9 +231,15 @@ compilation (`wasm-unsafe-eval` where supported). Node uses an isolated `data:`
 module URL. This mechanism needs neither `eval` nor a server for JS glue.
 
 This release keeps the audio renderer in the same WASM to preserve the existing
-API. The binary is **not yet optimized to M2's ≤60 KB target**, is not `no_std`,
-and has not been deployed on-chain by this change. Its actual size and checksum
-are recorded in `dist/decoder.json` for each build.
+API and uses Rust `std`. **The original M2 ≤60 KB requirement will not be met
+in this iteration.** We propose accepting the larger complete decoder rather
+than retaining 60 KB as an outstanding delivery promise. This scope adjustment
+has not been approved by the funding committee. See the
+[scope adjustment and forum draft](../../reports/m2/scope-adjustment.md).
+The decoder has been [deployed on CKB testnet inside a ZIP archive](../../reports/m2/README.md).
+Consumers must unzip the Cell data before passing WASM bytes to this loader.
+Each build's actual binary size and checksum are recorded in `dist/decoder.json`;
+use the archived loader and metadata when loading that deployed version.
 
 ## WebAudio playback
 

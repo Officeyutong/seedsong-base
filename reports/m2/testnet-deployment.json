@@ -1,0 +1,82 @@
+{
+  "network": "testnet",
+  "outPoint": {
+    "txHash": "0x4d54a43844847bd053b8cedf6bf70deb5cdb5904a43378f6db7c4426887a22ba",
+    "index": 0
+  },
+  "transactionStatus": {
+    "block_hash": "0xd77eb391cd10bda884f138ba96c08b3307e393db02f18fc59f6f4c2b4178ad1d",
+    "block_number": "0x15de865",
+    "reason": null,
+    "status": "committed",
+    "tx_index": "0x2"
+  },
+  "archive": {
+    "bytes": 159758,
+    "sha256": "9ace9b1db3fa9a4a89c6dbfee0900423b2b8c509ddca99c45212babdd2b16b48",
+    "dataHash": "0x8fe339ca81b742c4ffaa37a982be0f004fd0092a1c768df7614f82af1f041f97",
+    "schema": "seedsong-archive/1"
+  },
+  "capacityShannons": 15981900000000,
+  "decoderAbiVersion": 1,
+  "entries": [
+    {
+      "name": "decoder.wasm",
+      "bytes": 384498,
+      "sha256": "69df207a3e6ebfc5bf98f46ef26aabe3ebf2266bd9d212ea8eb374f79a8706c0",
+      "matchesLocalBuild": true
+    },
+    {
+      "name": "loader.js",
+      "bytes": 16089,
+      "sha256": "e936c4a29b1adcbc9e912058f0132c30fe02df5af387aaf250b9925df10a0bc6",
+      "matchesLocalBuild": true
+    },
+    {
+      "name": "decoder.json",
+      "bytes": 223,
+      "sha256": "d1642c22be74ae159c65d82d916ece80042fb7333adb89eca5ba3f7608f8c50e",
+      "matchesLocalBuild": true
+    },
+    {
+      "name": "spec.md",
+      "bytes": 25411,
+      "sha256": "b9e5edd3ecea6c6be294c1c971ecb75c7092b4d5b5d21825a8607436c1775ab4",
+      "matchesLocalBuild": true
+    },
+    {
+      "name": "spec-v1.md",
+      "bytes": 22227,
+      "sha256": "16cbb234326683727cbab33470fc6052eb73a3c72831e847de1b7609dfa4f5e4",
+      "matchesLocalBuild": true
+    },
+    {
+      "name": "pattern.md",
+      "bytes": 20854,
+      "sha256": "1185a83eeb3c3ba6a596c04082f0db966ca8f921861c2b8e4c1988ad7842f526",
+      "matchesLocalBuild": true
+    },
+    {
+      "name": "bundle.json",
+      "bytes": 1482,
+      "sha256": "6b0160403829d08c791d807791b6c32d31421480fb4d0bc370e09283997d935c",
+      "matchesLocalBuild": null
+    }
+  ],
+  "archiveIntegrityVerified": true,
+  "genesisHash": "0x10639e0895502b5688a6be8cf69460d76541bfa4821629d86d62ba0aae3f9606",
+  "liveCellStatus": "live",
+  "observedDate": "2026-11-01",
+  "verificationRpc": "https://testnet.ckb.dev",
+  "runtimeCheck": {
+    "environment": "Node.js v24.21.0",
+    "source": "WASM and pattern extracted from the on-chain ZIP; matching local loader verified byte-for-byte",
+    "dna": "9a401c07e8553fa2710c0000000000000209b62d000000000000000000000000",
+    "musicVersion": 2,
+    "events": 367,
+    "sng1Sha256": "96a23337b4fe24186a3a05c3831cf4297aaa14650d3b3c252b651937944fc6a3",
+    "svgBytes": 661,
+    "svgSha256": "d9750f641481bf4c69cbd5afda6f95041429c98ff35cc7a43f5d48fc1353cdad",
+    "browserPlaybackTested": false
+  }
+}

@@ -36,7 +36,7 @@ module.exports = {
               abiVersion: 1,
               wasmBytes: bytes.length,
               sha256: createHash('sha256').update(bytes).digest('hex'),
-              note: 'Use with the loader from this exact build. Not yet optimized to the M2 60 KB target.',
+              note: 'Use with the loader from this exact build. The original M2 60 KB requirement will not be met in this iteration; the scope adjustment requires funding committee agreement.',
             }, null, 2) + '\n'));
           });
         });
